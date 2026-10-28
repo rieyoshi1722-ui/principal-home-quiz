@@ -5,106 +5,198 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
 <style>
-/* layout: one phone-width column — step banner, live house preview, 2-col choice grid, back/next pixel buttons */
+/* layout: one phone-width column over the pixel-forest backdrop; one screen visible at a time
+   (start → quiz → result → pick a part → hint → next quiz … → finished house) */
 :root{
-  --bg:#1F2A4A;        /* night-sky navy behind the game */
+  --bg:#1F2A4A;
   --panel:#2B3962;
   --ink:#FFFFFF;
+  --dark:#2A2118;      /* text on white boxes and yellow buttons */
   --muted:#B9C3E6;
   --pick:#FFC83D;      /* same yellow as the LET'S GO button */
   --edge:#0E1430;
+  --paper:#FFFFFF;
   --pixel:'DotGothic16','Hiragino Maru Gothic ProN',sans-serif;
   color-scheme:dark;
 }
+*,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
-html,body{height:100%}
+html,body{min-height:100%}
 body{
-  background:var(--bg);
+  background:var(--bg) url(assets/ui/bg_forest.jpg) center top / cover fixed;
   color:var(--ink);
   font-family:var(--pixel);
   padding-left:max(16px, env(safe-area-inset-left, 0px));
   padding-right:max(16px, env(safe-area-inset-right, 0px));
 }
-.app{
-  max-width:440px;
-  margin:0 auto;
-  padding-block:16px 28px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:14px;
+.app{max-width:440px;margin:0 auto;padding-block:18px 32px}
+.screen{display:flex;flex-direction:column;align-items:center;gap:14px}
+.trial-tag{
+  align-self:flex-start;
+  font-size:.75rem;letter-spacing:.1em;
+  background:var(--edge);color:var(--pick);
+  padding:3px 8px;margin:0;
 }
+.plate{                       /* dark backing so white text reads over the forest */
+  width:100%;
+  background:color-mix(in srgb, var(--edge) 78%, transparent);
+  border:3px solid var(--edge);
+  padding:14px 12px;
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+}
+.img-btn{background:none;border:0;padding:0;cursor:pointer;line-height:0}
+.img-btn:focus-visible,.abc:focus-visible,.choice:focus-visible,.plain-btn:focus-visible{outline:3px solid var(--pick);outline-offset:3px}
+
+/* start */
+.start-title{width:92%;margin-top:6vh}
+.start-btn{width:70%;margin-top:4vh}
+.start-btn img{width:100%;height:auto}
+
+/* quiz */
+.quiz-no{font-size:2rem;color:var(--pick);margin:0;text-shadow:3px 3px 0 var(--edge);letter-spacing:.06em}
+.qframe{
+  width:100%;
+  aspect-ratio:700/447;
+  background:url(assets/ui/quiz_frame.png) center / 100% 100% no-repeat;
+  padding:16% 12% 8% 13%;
+  display:flex;align-items:center;
+  color:var(--dark);
+  font-size:1.1rem;line-height:1.6;
+}
+.abc-list{width:100%;display:flex;flex-direction:column;gap:10px}
+.abc{
+  width:100%;
+  aspect-ratio:1724/450;
+  background:center / 100% 100% no-repeat;
+  border:0;cursor:pointer;
+  font-family:var(--pixel);font-size:1.15rem;color:var(--dark);
+  display:flex;align-items:center;gap:12px;
+  padding:0 8%;
+  text-align:left;
+}
+.abc b{font-weight:400;font-size:1.3rem}
+.abc[data-l="A"]{background-image:url(assets/ui/btn_a.png)}
+.abc[data-l="B"]{background-image:url(assets/ui/btn_b.png);color:var(--paper)}
+.abc[data-l="C"]{background-image:url(assets/ui/btn_c.png);color:var(--paper)}
+
+/* result */
+.res-img{width:62%}
+.box{
+  width:100%;
+  background:var(--paper);color:var(--dark);
+  border:4px solid var(--edge);
+  box-shadow:4px 4px 0 var(--edge);
+  padding:12px 14px;
+  line-height:1.7;
+}
+.box h2{font-weight:400;font-size:.85rem;letter-spacing:.12em;margin:0 0 4px;color:#7A5B12}
+.box p{margin:0}
+.nav-img{height:46px;width:auto}
+
+/* part pick */
 .step-count{font-size:.85rem;letter-spacing:.12em;color:var(--muted);margin:0}
-.banner{width:82%;max-width:340px;height:auto;image-rendering:pixelated}
+.banner{width:82%;max-width:340px}
 .stage{
-  position:relative;
-  width:min(62vw, 250px);
+  width:min(56vw, 230px);
   border:4px solid var(--edge);
   box-shadow:0 0 0 3px var(--pick);
   background:var(--panel);
   line-height:0;
 }
 .stage canvas{width:100%;height:auto;display:block}
-.choices{
-  width:100%;
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
+.choices{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .choice{
-  font-family:var(--pixel);
-  font-size:1rem;
-  color:var(--ink);
+  font-family:var(--pixel);font-size:1rem;color:var(--ink);
   background:var(--panel);
   border:3px solid var(--edge);
   padding:8px 6px 10px;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:6px;
-  cursor:pointer;
-  min-width:0;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  cursor:pointer;min-width:0;
 }
 .choice:last-child:nth-child(odd){grid-column:1 / -1}
 .choice[aria-pressed="true"]{border-color:var(--pick);box-shadow:inset 0 0 0 2px var(--pick)}
-.choice:focus-visible{outline:3px solid var(--pick);outline-offset:2px}
-.thumb{width:100%;height:72px;display:flex;align-items:center;justify-content:center}
-.thumb img{max-height:72px;max-width:100%;object-fit:contain}
-.thumb .sw{width:64px;height:64px;border:3px solid var(--edge);background-size:cover}
-.nav{width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px}
-.nav button{background:none;border:0;padding:4px;cursor:pointer}
-.nav button:disabled{opacity:.25;cursor:default}
-.nav button:focus-visible{outline:3px solid var(--pick)}
-.nav img{height:44px;width:auto}
-.done{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
-.done h1{font-weight:400;font-size:1.6rem;margin:0;color:var(--pick);text-align:center}
-.done .final{width:min(80vw, 330px);border:4px solid var(--edge);box-shadow:0 0 0 3px var(--pick)}
-.note{font-size:.9rem;color:var(--muted);text-align:center;line-height:1.7;margin:0}
-.again{font-family:var(--pixel);font-size:1rem;background:var(--pick);color:#3A2600;border:3px solid var(--edge);padding:10px 22px;cursor:pointer}
+.thumb{width:100%;height:68px;display:flex;align-items:center;justify-content:center}
+.thumb img{max-height:68px;max-width:100%;object-fit:contain}
+.thumb .sw{width:60px;height:60px;border:3px solid var(--edge);background-size:cover}
+
+/* hint */
+.hint-title{font-size:1.4rem;color:var(--pick);margin:0;text-shadow:3px 3px 0 var(--edge)}
+.plain-btn{
+  font-family:var(--pixel);font-size:1rem;
+  background:var(--pick);color:var(--dark);
+  border:3px solid var(--edge);box-shadow:3px 3px 0 var(--edge);
+  padding:12px 18px;cursor:pointer;
+}
+.note{font-size:.85rem;color:var(--muted);text-align:center;line-height:1.7;margin:0}
+
+/* done */
+.done-title{font-size:1.7rem;color:var(--pick);margin:0;text-shadow:3px 3px 0 var(--edge)}
+.final{width:min(78vw, 320px);border:4px solid var(--edge);box-shadow:0 0 0 3px var(--pick)}
+
 @media (prefers-reduced-motion:no-preference){
-  .choice{transition:transform .1s}
-  .choice:active{transform:scale(.97)}
+  .screen{animation:in .25s ease both}
+  @keyframes in{from{opacity:.4;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .abc:active,.choice:active,.img-btn:active{transform:scale(.97)}
 }
 </style>
 
 <div class="app">
-  <section id="build" class="app" style="padding:0;width:100%">
-    <p class="step-count" id="count">STEP 1 / 5</p>
-    <img class="banner" id="banner" src="assets/ui/label_land.png" alt="土地をえらぼう!">
-    <div class="stage"><canvas id="cv" width="1080" height="2109"></canvas></div>
-    <div class="choices" id="choices"></div>
-    <div class="nav">
-      <button id="back" aria-label="もどる"><img src="assets/ui/btn_back.png" alt=""></button>
-      <button id="next" aria-label="つぎへ"><img src="assets/ui/btn_next.png" alt=""></button>
+
+  <section class="screen" id="s-start">
+    <p class="trial-tag">お試し版</p>
+    <img class="start-title" src="assets/ui/title.png" alt="22nd ANNIVERSARY PRINCIPAL HOME QUIZ RALLY">
+    <button class="img-btn start-btn" id="btn-start"><img src="assets/ui/btn_start.png" alt="LET'S GO!"></button>
+  </section>
+
+  <section class="screen" id="s-quiz" hidden>
+    <p class="quiz-no" id="q-no">QUIZ 1</p>
+    <div class="qframe"><span id="q-text"></span></div>
+    <div class="abc-list" id="q-choices"></div>
+  </section>
+
+  <section class="screen" id="s-wrong" hidden>
+    <div class="plate">
+      <img class="res-img" src="assets/ui/res_wrong.png" alt="不正解">
+      <button class="img-btn" id="btn-wrong-back"><img class="nav-img" src="assets/ui/btn_back.png" alt="もどる"></button>
     </div>
   </section>
 
-  <section id="done" class="done" hidden>
-    <h1>おうち完成!</h1>
-    <img class="final" id="final" alt="完成したおうちの画像">
-    <p class="note">画像を長押しして「写真に保存」してください。<br>（お試し版です。本番では保存ボタンをつけます）</p>
-    <button class="again" id="again">もういちど作る</button>
+  <section class="screen" id="s-correct" hidden>
+    <div class="plate">
+      <img class="res-img" src="assets/ui/res_correct.png" alt="正解!">
+      <div class="box"><h2>かいせつ</h2><p id="explain"></p></div>
+      <button class="img-btn" id="btn-to-part"><img class="nav-img" src="assets/ui/btn_next.png" alt="つぎへ"></button>
+    </div>
   </section>
+
+  <section class="screen" id="s-part" hidden>
+    <div class="plate">
+      <p class="step-count" id="part-count">パーツ 1 / 5</p>
+      <img class="banner" id="banner" src="assets/ui/label_land.png" alt="土地をえらぼう!">
+      <div class="stage"><canvas id="cv" width="1080" height="2109"></canvas></div>
+      <div class="choices" id="choices"></div>
+      <button class="img-btn" id="btn-part-next"><img class="nav-img" src="assets/ui/btn_next.png" alt="つぎへ"></button>
+    </div>
+  </section>
+
+  <section class="screen" id="s-hint" hidden>
+    <div class="plate">
+      <p class="hint-title">つぎの問題はどこ?</p>
+      <div class="box"><h2>ヒント</h2><p id="hint"></p></div>
+      <p class="note">本番では、ここで次の場所のQRコードを探して読みとります。</p>
+      <button class="plain-btn" id="btn-scan">QRを読みとったことにする</button>
+    </div>
+  </section>
+
+  <section class="screen" id="s-done" hidden>
+    <div class="plate">
+      <p class="done-title">おうち完成!</p>
+      <img class="final" id="final" alt="完成したおうちの画像">
+      <p class="note">画像を長押しして保存してみてください。<br>本番では保存ボタンをつけます。</p>
+      <button class="plain-btn" id="btn-again">もういちど遊ぶ</button>
+    </div>
+  </section>
+
 </div>
 
 <script>
@@ -112,6 +204,30 @@ body{
   "use strict";
   var P = "assets/parts/", U = "assets/ui/";
   var W = 1080, H = 2109, GROUND = Math.round(H * 0.80);
+
+  // 仮の問題（あとで本番の問題に入れかえる）
+  var QUIZ = [
+    { q:"日本の一戸建てで、いちばん多い家のつくりは?",
+      c:["木造","鉄骨造","コンクリート造"], a:0,
+      ex:"日本の一戸建ては、木でつくる「木造」がいちばん多いんだよ。",
+      hint:"（仮）受付の近く、大きな観葉植物のまわりを探してみよう!" },
+    { q:"家の広さの「1坪（つぼ）」は、たたみ何まい分くらい?",
+      c:["1まい","2まい","4まい"], a:1,
+      ex:"1坪は、たたみ約2まい分。だいたい3.3平方メートルだよ。",
+      hint:"（仮）おいしいにおいがする場所。キッチンコーナーを見てみよう!" },
+    { q:"屋根の上にのせて、電気をつくるものは?",
+      c:["太陽光パネル","風車","アンテナ"], a:0,
+      ex:"太陽の光で電気をつくるのが「太陽光パネル」。電気代の節約にもなるよ。",
+      hint:"（仮）外が見える大きな窓のそば。カーテンのうらに注目!" },
+    { q:"「平屋（ひらや）」って、どんな家?",
+      c:["屋上がある家","地下室がある家","1階だけの家"], a:2,
+      ex:"平屋は1階だけの家。階段がないので、くらしやすいと人気なんだ。",
+      hint:"（仮）子どもが遊べるキッズスペース。おもちゃ箱のあたりかも?" },
+    { q:"家を建てる前に、土地の神さまにお祈りする行事は?",
+      c:["上棟式","地鎮祭","引っこし"], a:1,
+      ex:"「地鎮祭（じちんさい）」は、工事の安全をお祈りする行事だよ。",
+      hint:"" }
+  ];
 
   var STEPS = [
     { key:"land", label:"label_land", opts:[
@@ -171,21 +287,60 @@ body{
     }
     return cache[src];
   }
-  // preload everything
   STEPS.forEach(function(s){ s.opts.forEach(function(o){ if (o.src) load(o.src); if (o.wall) load(o.wall); }); });
-  var titleP = load(U + "title.png");
+  var annivP = load(U + "anniv.png"), logoP = load(U + "logo.png");
 
-  var pick = { land:"sea", house:"2f", wall:"white", garden:"lawn", pet:"dog" };
-  var step = 0;
+  var state, pick;
+  function reset(){
+    state = { q:0 };
+    pick = { land:"sea", house:"2f", wall:"white", garden:"lawn", pet:"dog" };
+  }
+  reset();
+
   function opt(key){
     var s = STEPS.filter(function(x){ return x.key === key; })[0];
     return s.opts.filter(function(o){ return o.id === pick[key]; })[0];
   }
 
+  // ---------- screens
+  var screens = ["start","quiz","wrong","correct","part","hint","done"];
+  function show(name){
+    screens.forEach(function(n){ document.getElementById("s-" + n).hidden = (n !== name); });
+    window.scrollTo(0, 0);
+  }
+
+  function showQuiz(){
+    var Q = QUIZ[state.q];
+    document.getElementById("q-no").textContent = "QUIZ " + (state.q + 1);
+    document.getElementById("q-text").textContent = Q.q;
+    var list = document.getElementById("q-choices");
+    list.innerHTML = "";
+    ["A","B","C"].forEach(function(L, i){
+      var b = document.createElement("button");
+      b.className = "abc";
+      b.id = "ans-" + L;
+      b.setAttribute("data-l", L);
+      var k = document.createElement("b");
+      k.textContent = L;
+      var t = document.createElement("span");
+      t.textContent = Q.c[i];
+      b.appendChild(k); b.appendChild(t);
+      b.addEventListener("click", function(){
+        if (i === Q.a){
+          document.getElementById("explain").textContent = Q.ex;
+          show("correct");
+        } else show("wrong");
+      });
+      list.appendChild(b);
+    });
+    show("quiz");
+  }
+
+  // ---------- house drawing
   var cv = document.getElementById("cv");
   var ctx = cv.getContext("2d");
 
-  function houseLayer(house, wall, hImg, mImg, tImg){
+  function houseLayer(wall, hImg, mImg, tImg){
     var c = document.createElement("canvas");
     c.width = hImg.width; c.height = hImg.height;
     var x = c.getContext("2d");
@@ -221,21 +376,21 @@ body{
   }
 
   var drawSeq = 0;
-  function render(withTitle){
+  // upto = how many parts to show (1 = land only … 5 = everything)
+  function render(upto, withTitle){
     var seq = ++drawSeq;
     var land = opt("land"), house = opt("house"), wall = opt("wall"), garden = opt("garden"), pet = opt("pet");
-    var upto = withTitle ? 5 : step + 1; // only show parts chosen so far
     return Promise.all([
       load(land.src), load(house.src), load(house.wall),
       wall.src ? load(wall.src) : null,
-      load(garden.src), load(pet.src), titleP
+      load(garden.src), load(pet.src), annivP, logoP
     ]).then(function(r){
       if (seq !== drawSeq) return;
       ctx.clearRect(0, 0, W, H);
       ctx.drawImage(r[0], 0, 0, W, H);
       if (upto >= 5 && PET_POS[pet.id].behind) drawPet(pet, r[5]);
       if (upto >= 2){
-        var layer = houseLayer(house, upto >= 3 ? wall : {color:null}, r[1], upto >= 3 ? r[2] : null, r[3]);
+        var layer = houseLayer(upto >= 3 ? wall : {color:null}, r[1], upto >= 3 ? r[2] : null, r[3]);
         var hw = layer.width * HOUSE_SCALE, hh = layer.height * HOUSE_SCALE;
         ctx.drawImage(layer, (W - hw) / 2, GROUND - hh, hw, hh);
       }
@@ -244,17 +399,30 @@ body{
         ctx.drawImage(gi, 250 - gw / 2, GROUND + 10, gw, gh);
       }
       if (upto >= 5 && !PET_POS[pet.id].behind) drawPet(pet, r[5]);
-      if (withTitle && r[6]){
-        var tw = 600, th = r[6].height * tw / r[6].width;
-        ctx.drawImage(r[6], (W - tw) / 2, 90, tw, th);
+      if (withTitle){
+        var y = 110;
+        if (r[6]){
+          var aw = 640, ah = r[6].height * aw / r[6].width;
+          ctx.drawImage(r[6], (W - aw) / 2, y, aw, ah);
+          y += ah + 34;
+        }
+        if (r[7]){
+          var lw = 800, lh = r[7].height * lw / r[7].width;
+          ctx.save();
+          ctx.shadowColor = "rgba(14,20,48,.75)";   // white logo needs a shadow on light skies
+          ctx.shadowBlur = 18;
+          ctx.shadowOffsetY = 4;
+          ctx.drawImage(r[7], (W - lw) / 2, y, lw, lh);
+          ctx.restore();
+        }
       }
     });
   }
 
   var elChoices = document.getElementById("choices");
-  function renderStep(){
-    var s = STEPS[step];
-    document.getElementById("count").textContent = "STEP " + (step + 1) + " / " + STEPS.length;
+  function showPart(){
+    var i = state.q, s = STEPS[i];
+    document.getElementById("part-count").textContent = "パーツ " + (i + 1) + " / " + STEPS.length;
     var banner = document.getElementById("banner");
     banner.src = U + s.label + ".png";
     elChoices.innerHTML = "";
@@ -281,37 +449,39 @@ body{
       b.addEventListener("click", function(){
         pick[s.key] = o.id;
         Array.prototype.forEach.call(elChoices.children, function(c){ c.setAttribute("aria-pressed", String(c === b)); });
-        render(false);
+        render(i + 1, false);
       });
       elChoices.appendChild(b);
     });
-    document.getElementById("back").disabled = (step === 0);
-    render(false);
+    render(i + 1, false);
+    show("part");
   }
 
-  document.getElementById("next").addEventListener("click", function(){
-    if (step < STEPS.length - 1){ step++; renderStep(); window.scrollTo(0, 0); }
-    else finish();
-  });
-  document.getElementById("back").addEventListener("click", function(){
-    if (step > 0){ step--; renderStep(); }
-  });
-  document.getElementById("again").addEventListener("click", function(){
-    step = 0;
-    document.getElementById("done").hidden = true;
-    document.getElementById("build").hidden = false;
-    renderStep();
-  });
-
   function finish(){
-    render(true).then(function(){
+    render(5, true).then(function(){
       document.getElementById("final").src = cv.toDataURL("image/jpeg", 0.9);
-      document.getElementById("build").hidden = true;
-      document.getElementById("done").hidden = false;
-      window.scrollTo(0, 0);
+      show("done");
     });
   }
 
-  renderStep();
+  // ---------- buttons
+  document.getElementById("btn-start").addEventListener("click", showQuiz);
+  document.getElementById("btn-wrong-back").addEventListener("click", function(){ show("quiz"); });
+  document.getElementById("btn-to-part").addEventListener("click", showPart);
+  document.getElementById("btn-part-next").addEventListener("click", function(){
+    if (state.q === QUIZ.length - 1){ finish(); return; }
+    document.getElementById("hint").textContent = QUIZ[state.q].hint;
+    show("hint");
+  });
+  document.getElementById("btn-scan").addEventListener("click", function(){
+    state.q += 1;
+    showQuiz();
+  });
+  document.getElementById("btn-again").addEventListener("click", function(){
+    reset();
+    show("start");
+  });
+
+  show("start");
 })();
 </script>
