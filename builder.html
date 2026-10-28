@@ -20,6 +20,8 @@
   --edge:#0E1430;
   --paper:#FFFFFF;
   --ring:#ECE7DC;      /* faint orbit line on the white screen */
+  --sky:#5DBEFB;       /* correct screen: pixel sky behind the clouds */
+  --gloom:#1B1626;     /* wrong screen: dark gradient with manga gloom lines */
   --pixel:'DotGothic16','Hiragino Maru Gothic ProN',sans-serif;
   color-scheme:dark;
 }
@@ -34,6 +36,8 @@ body{
   padding-right:max(16px, env(safe-area-inset-right, 0px));
 }
 body.white{background:var(--paper);color:var(--dark)}
+body.sky{background:var(--sky) url(assets/ui/bg_sky.png) center top / cover fixed;image-rendering:pixelated}
+body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cover fixed}
 .app{max-width:440px;margin:0 auto;padding-block:18px 32px}
 .screen{display:flex;flex-direction:column;align-items:center;gap:14px}
 .trial-tag{
@@ -85,7 +89,9 @@ body.white{background:var(--paper);color:var(--dark)}
 .abc[data-l="C"]{background-image:url(assets/ui/btn_c.png);color:var(--paper)}
 
 /* result: no frame, text and icon separate, icon sits in the middle of the screen */
-.result{min-height:calc(100svh - 60px);justify-content:center;gap:16px}
+.result{min-height:calc(100svh - 40px);gap:16px}
+.result .grow{flex:1}
+.result .low{padding-bottom:7vh}      /* back / next sit a little low on the screen */
 .res-text{width:53%;height:auto}
 .res-text.wrong{width:53%}
 .res-icon{width:42%;height:auto}
@@ -204,16 +210,20 @@ body.white{background:var(--paper);color:var(--dark)}
   </section>
 
   <section class="screen result" id="s-wrong" hidden>
+    <div class="grow"></div>
     <img class="res-text wrong" id="wrong-text" src="assets/ui/res_wrong_text.png" alt="不正解">
     <img class="res-icon wrong" src="assets/ui/res_wrong_icon.png" alt="">
-    <button class="img-btn" id="btn-wrong-back"><img class="nav-img" src="assets/ui/btn_back.png" alt="もどる"></button>
+    <div class="grow"></div>
+    <button class="img-btn low" id="btn-wrong-back"><img class="nav-img" src="assets/ui/btn_back.png" alt="もどる"></button>
   </section>
 
   <section class="screen result" id="s-correct" hidden>
+    <div class="grow"></div>
     <img class="res-text" id="correct-text" src="assets/ui/res_correct_text.png" alt="正解!">
     <img class="res-icon" src="assets/ui/res_correct_icon.png" alt="">
     <div class="box"><h2>かいせつ</h2><p id="explain"></p></div>
-    <button class="img-btn" id="btn-to-part"><img class="nav-img" src="assets/ui/btn_next.png" alt="つぎへ"></button>
+    <div class="grow"></div>
+    <button class="img-btn low" id="btn-to-part"><img class="nav-img" src="assets/ui/btn_next.png" alt="つぎへ"></button>
   </section>
 
   <section class="screen" id="s-part" hidden>
@@ -362,6 +372,8 @@ body.white{background:var(--paper);color:var(--dark)}
   function show(name){
     screens.forEach(function(n){ document.getElementById("s-" + n).hidden = (n !== name); });
     document.body.classList.toggle("white", name === "part");
+    document.body.classList.toggle("sky", name === "correct");
+    document.body.classList.toggle("gloom", name === "wrong");
     window.scrollTo(0, 0);
   }
   function replayPop(el){
