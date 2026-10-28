@@ -1,0 +1,317 @@
+<meta charset="utf-8">
+<title>おうちづくり お試し</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+/* layout: one phone-width column — step banner, live house preview, 2-col choice grid, back/next pixel buttons */
+:root{
+  --bg:#1F2A4A;        /* night-sky navy behind the game */
+  --panel:#2B3962;
+  --ink:#FFFFFF;
+  --muted:#B9C3E6;
+  --pick:#FFC83D;      /* same yellow as the LET'S GO button */
+  --edge:#0E1430;
+  --pixel:'DotGothic16','Hiragino Maru Gothic ProN',sans-serif;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--pixel);
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+}
+.app{
+  max-width:440px;
+  margin:0 auto;
+  padding-block:16px 28px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:14px;
+}
+.step-count{font-size:.85rem;letter-spacing:.12em;color:var(--muted);margin:0}
+.banner{width:82%;max-width:340px;height:auto;image-rendering:pixelated}
+.stage{
+  position:relative;
+  width:min(62vw, 250px);
+  border:4px solid var(--edge);
+  box-shadow:0 0 0 3px var(--pick);
+  background:var(--panel);
+  line-height:0;
+}
+.stage canvas{width:100%;height:auto;display:block}
+.choices{
+  width:100%;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.choice{
+  font-family:var(--pixel);
+  font-size:1rem;
+  color:var(--ink);
+  background:var(--panel);
+  border:3px solid var(--edge);
+  padding:8px 6px 10px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  cursor:pointer;
+  min-width:0;
+}
+.choice:last-child:nth-child(odd){grid-column:1 / -1}
+.choice[aria-pressed="true"]{border-color:var(--pick);box-shadow:inset 0 0 0 2px var(--pick)}
+.choice:focus-visible{outline:3px solid var(--pick);outline-offset:2px}
+.thumb{width:100%;height:72px;display:flex;align-items:center;justify-content:center}
+.thumb img{max-height:72px;max-width:100%;object-fit:contain}
+.thumb .sw{width:64px;height:64px;border:3px solid var(--edge);background-size:cover}
+.nav{width:100%;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.nav button{background:none;border:0;padding:4px;cursor:pointer}
+.nav button:disabled{opacity:.25;cursor:default}
+.nav button:focus-visible{outline:3px solid var(--pick)}
+.nav img{height:44px;width:auto}
+.done{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+.done h1{font-weight:400;font-size:1.6rem;margin:0;color:var(--pick);text-align:center}
+.done .final{width:min(80vw, 330px);border:4px solid var(--edge);box-shadow:0 0 0 3px var(--pick)}
+.note{font-size:.9rem;color:var(--muted);text-align:center;line-height:1.7;margin:0}
+.again{font-family:var(--pixel);font-size:1rem;background:var(--pick);color:#3A2600;border:3px solid var(--edge);padding:10px 22px;cursor:pointer}
+@media (prefers-reduced-motion:no-preference){
+  .choice{transition:transform .1s}
+  .choice:active{transform:scale(.97)}
+}
+</style>
+
+<div class="app">
+  <section id="build" class="app" style="padding:0;width:100%">
+    <p class="step-count" id="count">STEP 1 / 5</p>
+    <img class="banner" id="banner" src="assets/ui/label_land.png" alt="土地をえらぼう!">
+    <div class="stage"><canvas id="cv" width="1080" height="2109"></canvas></div>
+    <div class="choices" id="choices"></div>
+    <div class="nav">
+      <button id="back" aria-label="もどる"><img src="assets/ui/btn_back.png" alt=""></button>
+      <button id="next" aria-label="つぎへ"><img src="assets/ui/btn_next.png" alt=""></button>
+    </div>
+  </section>
+
+  <section id="done" class="done" hidden>
+    <h1>おうち完成!</h1>
+    <img class="final" id="final" alt="完成したおうちの画像">
+    <p class="note">画像を長押しして「写真に保存」してください。<br>（お試し版です。本番では保存ボタンをつけます）</p>
+    <button class="again" id="again">もういちど作る</button>
+  </section>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var P = "assets/parts/", U = "assets/ui/";
+  var W = 1080, H = 2109, GROUND = Math.round(H * 0.80);
+
+  var STEPS = [
+    { key:"land", label:"label_land", opts:[
+      { id:"sea", name:"海のそば", src:P+"land_sea.jpg" },
+      { id:"mountain", name:"山の中", src:P+"land_mountain.jpg" },
+      { id:"town", name:"街中", src:P+"land_town.jpg" },
+      { id:"space", name:"宇宙", src:P+"land_space.jpg" }
+    ]},
+    { key:"house", label:"label_house", opts:[
+      { id:"flat", name:"平屋", src:P+"house_flat.png", wall:P+"house_flat_wall.png" },
+      { id:"2f", name:"2階建て", src:P+"house_2f.png", wall:P+"house_2f_wall.png" },
+      { id:"3f", name:"屋上つき3階建て", src:P+"house_3f.png", wall:P+"house_3f_wall.png" },
+      { id:"garage", name:"ガレージハウス", src:P+"house_garage.png", wall:P+"house_garage_wall.png" },
+      { id:"castle", name:"お城", src:P+"house_castle.png", wall:P+"house_castle_wall.png" }
+    ]},
+    { key:"wall", label:"label_wall", opts:[
+      { id:"white", name:"白", color:"#F7F4EC" },
+      { id:"wood", name:"木目", src:P+"wall_wood.png" },
+      { id:"navy", name:"ネイビー", color:"#2F4063" },
+      { id:"candy", name:"お菓子", src:P+"wall_candy.png" },
+      { id:"gold", name:"金ぱく", src:P+"wall_gold.png" }
+    ]},
+    { key:"garden", label:"label_garden", opts:[
+      { id:"pool", name:"プール", src:P+"garden_pool.png" },
+      { id:"flower", name:"花だん", src:P+"garden_flower.png" },
+      { id:"farm", name:"畑", src:P+"garden_farm.png" },
+      { id:"lawn", name:"芝生", src:P+"garden_lawn.png" }
+    ]},
+    { key:"pet", label:"label_pet", opts:[
+      { id:"dog", name:"犬", src:P+"pet_dog.png" },
+      { id:"cat", name:"ねこ", src:P+"pet_cat.png" },
+      { id:"bird", name:"鳥", src:P+"pet_bird.png" },
+      { id:"momonga", name:"モモンガ", src:P+"pet_momonga.png" },
+      { id:"dino", name:"恐竜", src:P+"pet_dino.png" }
+    ]}
+  ];
+
+  // where each pet sits: cx = center x, bottom = foot line, h = drawn height
+  var PET_POS = {
+    dog:{ cx:830, bottom:GROUND+330, h:300 },
+    cat:{ cx:830, bottom:GROUND+330, h:300 },
+    bird:{ cx:800, bottom:820, h:260 },
+    momonga:{ cx:270, bottom:900, h:300 },
+    dino:{ cx:930, bottom:GROUND+60, h:980, behind:true }
+  };
+  var HOUSE_SCALE = 1.25;
+
+  var cache = {};
+  function load(src){
+    if (!cache[src]){
+      cache[src] = new Promise(function(res){
+        var im = new Image();
+        im.onload = function(){ res(im); };
+        im.onerror = function(){ res(null); };
+        im.src = src;
+      });
+    }
+    return cache[src];
+  }
+  // preload everything
+  STEPS.forEach(function(s){ s.opts.forEach(function(o){ if (o.src) load(o.src); if (o.wall) load(o.wall); }); });
+  var titleP = load(U + "title.png");
+
+  var pick = { land:"sea", house:"2f", wall:"white", garden:"lawn", pet:"dog" };
+  var step = 0;
+  function opt(key){
+    var s = STEPS.filter(function(x){ return x.key === key; })[0];
+    return s.opts.filter(function(o){ return o.id === pick[key]; })[0];
+  }
+
+  var cv = document.getElementById("cv");
+  var ctx = cv.getContext("2d");
+
+  function houseLayer(house, wall, hImg, mImg, tImg){
+    var c = document.createElement("canvas");
+    c.width = hImg.width; c.height = hImg.height;
+    var x = c.getContext("2d");
+    x.drawImage(hImg, 0, 0);
+    if (!mImg) return c;
+    var f = document.createElement("canvas");
+    f.width = c.width; f.height = c.height;
+    var fx = f.getContext("2d");
+    if (wall.color){
+      fx.fillStyle = wall.color;
+      fx.fillRect(0, 0, f.width, f.height);
+    } else if (tImg){
+      var t = 150 / HOUSE_SCALE;
+      for (var yy = 0; yy < f.height; yy += t)
+        for (var xx = 0; xx < f.width; xx += t) fx.drawImage(tImg, xx, yy, t, t);
+    }
+    // mask is a grayscale image: turn it into alpha
+    var m = document.createElement("canvas");
+    m.width = f.width; m.height = f.height;
+    var mx = m.getContext("2d");
+    mx.drawImage(mImg, 0, 0);
+    var md = mx.getImageData(0, 0, m.width, m.height), fd = fx.getImageData(0, 0, f.width, f.height);
+    for (var i = 0; i < md.data.length; i += 4) fd.data[i + 3] = md.data[i];
+    fx.putImageData(fd, 0, 0);
+    x.drawImage(f, 0, 0);
+    return c;
+  }
+
+  function drawPet(p, img){
+    var pos = PET_POS[p.id];
+    var h = pos.h, w = img.width * h / img.height;
+    ctx.drawImage(img, pos.cx - w / 2, pos.bottom - h, w, h);
+  }
+
+  var drawSeq = 0;
+  function render(withTitle){
+    var seq = ++drawSeq;
+    var land = opt("land"), house = opt("house"), wall = opt("wall"), garden = opt("garden"), pet = opt("pet");
+    var upto = withTitle ? 5 : step + 1; // only show parts chosen so far
+    return Promise.all([
+      load(land.src), load(house.src), load(house.wall),
+      wall.src ? load(wall.src) : null,
+      load(garden.src), load(pet.src), titleP
+    ]).then(function(r){
+      if (seq !== drawSeq) return;
+      ctx.clearRect(0, 0, W, H);
+      ctx.drawImage(r[0], 0, 0, W, H);
+      if (upto >= 5 && PET_POS[pet.id].behind) drawPet(pet, r[5]);
+      if (upto >= 2){
+        var layer = houseLayer(house, upto >= 3 ? wall : {color:null}, r[1], upto >= 3 ? r[2] : null, r[3]);
+        var hw = layer.width * HOUSE_SCALE, hh = layer.height * HOUSE_SCALE;
+        ctx.drawImage(layer, (W - hw) / 2, GROUND - hh, hw, hh);
+      }
+      if (upto >= 4){
+        var gi = r[4], gw = 420, gh = gi.height * gw / gi.width;
+        ctx.drawImage(gi, 250 - gw / 2, GROUND + 10, gw, gh);
+      }
+      if (upto >= 5 && !PET_POS[pet.id].behind) drawPet(pet, r[5]);
+      if (withTitle && r[6]){
+        var tw = 600, th = r[6].height * tw / r[6].width;
+        ctx.drawImage(r[6], (W - tw) / 2, 90, tw, th);
+      }
+    });
+  }
+
+  var elChoices = document.getElementById("choices");
+  function renderStep(){
+    var s = STEPS[step];
+    document.getElementById("count").textContent = "STEP " + (step + 1) + " / " + STEPS.length;
+    var banner = document.getElementById("banner");
+    banner.src = U + s.label + ".png";
+    elChoices.innerHTML = "";
+    s.opts.forEach(function(o){
+      var b = document.createElement("button");
+      b.className = "choice";
+      b.id = "opt-" + s.key + "-" + o.id;
+      b.setAttribute("aria-pressed", String(pick[s.key] === o.id));
+      var th = document.createElement("span");
+      th.className = "thumb";
+      if (s.key === "wall"){
+        var sw = document.createElement("span");
+        sw.className = "sw";
+        if (o.color) sw.style.background = o.color; else sw.style.backgroundImage = "url(" + o.src + ")";
+        th.appendChild(sw);
+      } else {
+        var im = document.createElement("img");
+        im.src = o.src; im.alt = "";
+        th.appendChild(im);
+      }
+      var lb = document.createElement("span");
+      lb.textContent = o.name;
+      b.appendChild(th); b.appendChild(lb);
+      b.addEventListener("click", function(){
+        pick[s.key] = o.id;
+        Array.prototype.forEach.call(elChoices.children, function(c){ c.setAttribute("aria-pressed", String(c === b)); });
+        render(false);
+      });
+      elChoices.appendChild(b);
+    });
+    document.getElementById("back").disabled = (step === 0);
+    render(false);
+  }
+
+  document.getElementById("next").addEventListener("click", function(){
+    if (step < STEPS.length - 1){ step++; renderStep(); window.scrollTo(0, 0); }
+    else finish();
+  });
+  document.getElementById("back").addEventListener("click", function(){
+    if (step > 0){ step--; renderStep(); }
+  });
+  document.getElementById("again").addEventListener("click", function(){
+    step = 0;
+    document.getElementById("done").hidden = true;
+    document.getElementById("build").hidden = false;
+    renderStep();
+  });
+
+  function finish(){
+    render(true).then(function(){
+      document.getElementById("final").src = cv.toDataURL("image/jpeg", 0.9);
+      document.getElementById("build").hidden = true;
+      document.getElementById("done").hidden = false;
+      window.scrollTo(0, 0);
+    });
+  }
+
+  renderStep();
+})();
+</script>
