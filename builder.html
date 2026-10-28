@@ -6,16 +6,20 @@
 <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
 <style>
 /* layout: one phone-width column over the pixel-forest backdrop; one screen visible at a time
-   (start → quiz → result → pick a part → hint → next quiz … → finished house) */
+   (start → quiz → result → pick a part → hint → next quiz … → finished house).
+   The part screen switches to a white page with the house fixed in the middle and a
+   swipeable ring of choices orbiting it. Game UI pieces are drawn at 90% of their first size. */
 :root{
   --bg:#1F2A4A;
   --panel:#2B3962;
   --ink:#FFFFFF;
-  --dark:#2A2118;      /* text on white boxes and yellow buttons */
+  --dark:#2A2118;      /* text on white boxes, yellow buttons and the white part screen */
   --muted:#B9C3E6;
+  --muted-dark:#6E6656;
   --pick:#FFC83D;      /* same yellow as the LET'S GO button */
   --edge:#0E1430;
   --paper:#FFFFFF;
+  --ring:#ECE7DC;      /* faint orbit line on the white screen */
   --pixel:'DotGothic16','Hiragino Maru Gothic ProN',sans-serif;
   color-scheme:dark;
 }
@@ -29,6 +33,7 @@ body{
   padding-left:max(16px, env(safe-area-inset-left, 0px));
   padding-right:max(16px, env(safe-area-inset-right, 0px));
 }
+body.white{background:var(--paper);color:var(--dark)}
 .app{max-width:440px;margin:0 auto;padding-block:18px 32px}
 .screen{display:flex;flex-direction:column;align-items:center;gap:14px}
 .trial-tag{
@@ -45,98 +50,142 @@ body{
   display:flex;flex-direction:column;align-items:center;gap:12px;
 }
 .img-btn{background:none;border:0;padding:0;cursor:pointer;line-height:0}
-.img-btn:focus-visible,.abc:focus-visible,.choice:focus-visible,.plain-btn:focus-visible{outline:3px solid var(--pick);outline-offset:3px}
+.img-btn:focus-visible,.abc:focus-visible,.orb:focus-visible,.plain-btn:focus-visible,.arrow:focus-visible{outline:3px solid var(--pick);outline-offset:3px}
 
 /* start */
-.start-title{width:92%;margin-top:6vh}
-.start-btn{width:70%;margin-top:4vh}
+.start-title{width:83%;margin-top:6vh}
+.start-btn{width:63%;margin-top:4vh}
 .start-btn img{width:100%;height:auto}
 
 /* quiz */
-.quiz-no{width:58%;max-width:250px;height:auto}
+.quiz-no{width:52%;max-width:225px;height:auto}
 .qframe{
-  width:100%;
+  width:90%;
   aspect-ratio:700/447;
   background:url(assets/ui/quiz_frame.png) center / 100% 100% no-repeat;
   padding:16% 12% 8% 13%;
   display:flex;align-items:center;
   color:var(--dark);
-  font-size:1.1rem;line-height:1.6;
+  font-size:1rem;line-height:1.6;
 }
-.abc-list{width:100%;display:flex;flex-direction:column;gap:10px}
+.abc-list{width:90%;display:flex;flex-direction:column;gap:9px}
 .abc{
   width:100%;
   aspect-ratio:1724/450;
   background:center / 100% 100% no-repeat;
   border:0;cursor:pointer;
-  font-family:var(--pixel);font-size:1.15rem;color:var(--dark);
-  display:flex;align-items:center;gap:12px;
+  font-family:var(--pixel);font-size:1.05rem;color:var(--dark);
+  display:flex;align-items:center;gap:11px;
   padding:0 8%;
   text-align:left;
 }
-.abc b{font-weight:400;font-size:1.3rem}
+.abc b{font-weight:400;font-size:1.17rem}
 .abc[data-l="A"]{background-image:url(assets/ui/btn_a.png)}
 .abc[data-l="B"]{background-image:url(assets/ui/btn_b.png);color:var(--paper)}
 .abc[data-l="C"]{background-image:url(assets/ui/btn_c.png);color:var(--paper)}
 
-/* result */
-.res-img{width:62%}
+/* result: no frame, text and icon separate, icon sits in the middle of the screen */
+.result{min-height:calc(100svh - 60px);justify-content:center;gap:16px}
+.res-text{width:53%;height:auto}
+.res-text.wrong{width:53%}
+.res-icon{width:42%;height:auto}
+.res-icon.wrong{width:33%}
 .box{
-  width:100%;
+  width:90%;
   background:var(--paper);color:var(--dark);
   border:4px solid var(--edge);
   box-shadow:4px 4px 0 var(--edge);
-  padding:12px 14px;
+  padding:11px 13px;
   line-height:1.7;
+  font-size:.95rem;
 }
-.box h2{font-weight:400;font-size:.85rem;letter-spacing:.12em;margin:0 0 4px;color:#7A5B12}
+.box h2{font-weight:400;font-size:.8rem;letter-spacing:.12em;margin:0 0 4px;color:#7A5B12}
 .box p{margin:0}
-.nav-img{height:46px;width:auto}
+.nav-img{height:41px;width:auto}
+@media (prefers-reduced-motion:no-preference){
+  .pop{animation:pop .65s cubic-bezier(.3,1.5,.5,1) both}
+  @keyframes pop{
+    0%{transform:scale(.55);opacity:0}
+    45%{transform:scale(1.22);opacity:1}
+    70%{transform:scale(.94)}
+    100%{transform:scale(1)}
+  }
+}
 
-/* part pick */
-.step-count{font-size:.85rem;letter-spacing:.12em;color:var(--muted);margin:0}
-.banner{width:82%;max-width:340px}
+/* part pick: white page, house fixed in the middle, choices orbit around it */
+.step-count{font-size:.85rem;letter-spacing:.12em;margin:0;color:var(--muted-dark)}
+.banner{width:74%;max-width:306px}
+.dial{
+  position:relative;
+  width:100%;
+  height:min(132vw, 560px);
+  touch-action:pan-y;
+  user-select:none;-webkit-user-select:none;
+  cursor:grab;
+}
+.dial.dragging{cursor:grabbing}
+.orbit{
+  position:absolute;left:50%;top:50%;
+  width:84%;height:84%;
+  transform:translate(-50%,-50%);
+  border:2px dashed var(--ring);
+  border-radius:50%;
+  pointer-events:none;
+}
 .stage{
-  width:min(56vw, 230px);
-  border:4px solid var(--edge);
-  box-shadow:0 0 0 3px var(--pick);
-  background:var(--panel);
+  position:absolute;left:50%;top:50%;
+  width:38%;
+  transform:translate(-50%,-50%);
+  border:3px solid var(--dark);
   line-height:0;
+  z-index:50;
+  background:var(--paper);
 }
 .stage canvas{width:100%;height:auto;display:block}
-.choices{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.choice{
-  font-family:var(--pixel);font-size:1rem;color:var(--ink);
-  background:var(--panel);
-  border:3px solid var(--edge);
-  padding:8px 6px 10px;
-  display:flex;flex-direction:column;align-items:center;gap:6px;
-  cursor:pointer;min-width:0;
+.orb{
+  position:absolute;left:0;top:0;
+  width:76px;height:76px;
+  margin:-38px 0 0 -38px;
+  border-radius:50%;
+  border:3px solid var(--dark);
+  background:var(--paper);
+  padding:0;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+  will-change:transform;
 }
-.choice:last-child:nth-child(odd){grid-column:1 / -1}
-.choice[aria-pressed="true"]{border-color:var(--pick);box-shadow:inset 0 0 0 2px var(--pick)}
-.thumb{width:100%;height:68px;display:flex;align-items:center;justify-content:center}
-.thumb img{max-height:68px;max-width:100%;object-fit:contain}
-.thumb .sw{width:60px;height:60px;border:3px solid var(--edge);background-size:cover}
+.orb img{max-width:78%;max-height:78%;object-fit:contain;pointer-events:none}
+.orb.land img{max-width:100%;max-height:none;width:100%;height:100%;object-fit:cover}
+.orb .sw{width:100%;height:100%;background-size:cover;background-position:center}
+.orb.front{border-color:var(--pick);box-shadow:0 0 0 3px var(--dark)}
+.pick-row{display:flex;align-items:center;justify-content:center;gap:16px;width:100%}
+.arrow{
+  font-family:var(--pixel);font-size:1.1rem;
+  width:40px;height:40px;
+  border:3px solid var(--dark);background:var(--pick);color:var(--dark);
+  cursor:pointer;
+}
+.pick-name{font-size:1.25rem;min-width:9em;text-align:center;margin:0}
+.swipe-note{font-size:.8rem;color:var(--muted-dark);margin:0}
 
 /* hint */
-.hint-title{font-size:1.4rem;color:var(--pick);margin:0;text-shadow:3px 3px 0 var(--edge)}
+.hint-title{font-size:1.26rem;color:var(--pick);margin:0;text-shadow:3px 3px 0 var(--edge)}
 .plain-btn{
-  font-family:var(--pixel);font-size:1rem;
+  font-family:var(--pixel);font-size:.9rem;
   background:var(--pick);color:var(--dark);
   border:3px solid var(--edge);box-shadow:3px 3px 0 var(--edge);
-  padding:12px 18px;cursor:pointer;
+  padding:11px 16px;cursor:pointer;
 }
 .note{font-size:.85rem;color:var(--muted);text-align:center;line-height:1.7;margin:0}
 
 /* done */
-.done-title{font-size:1.7rem;color:var(--pick);margin:0;text-shadow:3px 3px 0 var(--edge)}
+.done-title{font-size:1.53rem;color:var(--pick);margin:0;text-shadow:3px 3px 0 var(--edge)}
 .final{width:min(78vw, 320px);border:4px solid var(--edge);box-shadow:0 0 0 3px var(--pick)}
 
 @media (prefers-reduced-motion:no-preference){
   .screen{animation:in .25s ease both}
   @keyframes in{from{opacity:.4;transform:translateY(6px)}to{opacity:1;transform:none}}
-  .abc:active,.choice:active,.img-btn:active{transform:scale(.97)}
+  .abc:active,.img-btn:active,.arrow:active{transform:scale(.97)}
 }
 </style>
 
@@ -154,29 +203,33 @@ body{
     <div class="abc-list" id="q-choices"></div>
   </section>
 
-  <section class="screen" id="s-wrong" hidden>
-    <div class="plate">
-      <img class="res-img" src="assets/ui/res_wrong.png" alt="不正解">
-      <button class="img-btn" id="btn-wrong-back"><img class="nav-img" src="assets/ui/btn_back.png" alt="もどる"></button>
-    </div>
+  <section class="screen result" id="s-wrong" hidden>
+    <img class="res-text wrong" id="wrong-text" src="assets/ui/res_wrong_text.png" alt="不正解">
+    <img class="res-icon wrong" src="assets/ui/res_wrong_icon.png" alt="">
+    <button class="img-btn" id="btn-wrong-back"><img class="nav-img" src="assets/ui/btn_back.png" alt="もどる"></button>
   </section>
 
-  <section class="screen" id="s-correct" hidden>
-    <div class="plate">
-      <img class="res-img" src="assets/ui/res_correct.png" alt="正解!">
-      <div class="box"><h2>かいせつ</h2><p id="explain"></p></div>
-      <button class="img-btn" id="btn-to-part"><img class="nav-img" src="assets/ui/btn_next.png" alt="つぎへ"></button>
-    </div>
+  <section class="screen result" id="s-correct" hidden>
+    <img class="res-text" id="correct-text" src="assets/ui/res_correct_text.png" alt="正解!">
+    <img class="res-icon" src="assets/ui/res_correct_icon.png" alt="">
+    <div class="box"><h2>かいせつ</h2><p id="explain"></p></div>
+    <button class="img-btn" id="btn-to-part"><img class="nav-img" src="assets/ui/btn_next.png" alt="つぎへ"></button>
   </section>
 
   <section class="screen" id="s-part" hidden>
-    <div class="plate">
-      <p class="step-count" id="part-count">パーツ 1 / 5</p>
-      <img class="banner" id="banner" src="assets/ui/label_land.png" alt="土地をえらぼう!">
+    <p class="step-count" id="part-count">パーツ 1 / 5</p>
+    <img class="banner" id="banner" src="assets/ui/label_land.png" alt="土地をえらぼう!">
+    <div class="dial" id="dial">
+      <div class="orbit"></div>
       <div class="stage"><canvas id="cv" width="1080" height="2109"></canvas></div>
-      <div class="choices" id="choices"></div>
-      <button class="img-btn" id="btn-part-next"><img class="nav-img" src="assets/ui/btn_next.png" alt="つぎへ"></button>
     </div>
+    <div class="pick-row">
+      <button class="arrow" id="prev" aria-label="ひとつ前">◀</button>
+      <p class="pick-name" id="pick-name" aria-live="polite"></p>
+      <button class="arrow" id="nextopt" aria-label="ひとつ次">▶</button>
+    </div>
+    <p class="swipe-note">左右にスライドして、くるっと回してえらぼう</p>
+    <button class="img-btn" id="btn-part-next"><img class="nav-img" src="assets/ui/btn_next.png" alt="つぎへ"></button>
   </section>
 
   <section class="screen" id="s-hint" hidden>
@@ -204,6 +257,7 @@ body{
   "use strict";
   var P = "assets/parts/", U = "assets/ui/";
   var W = 1080, H = 2109, GROUND = Math.round(H * 0.80);
+  var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // 仮の問題（あとで本番の問題に入れかえる）
   var QUIZ = [
@@ -307,7 +361,13 @@ body{
   var screens = ["start","quiz","wrong","correct","part","hint","done"];
   function show(name){
     screens.forEach(function(n){ document.getElementById("s-" + n).hidden = (n !== name); });
+    document.body.classList.toggle("white", name === "part");
     window.scrollTo(0, 0);
+  }
+  function replayPop(el){
+    el.classList.remove("pop");
+    void el.offsetWidth;
+    el.classList.add("pop");
   }
 
   function showQuiz(){
@@ -332,6 +392,7 @@ body{
         if (i === Q.a){
           document.getElementById("explain").textContent = Q.ex;
           show("correct");
+          replayPop(document.getElementById("correct-text"));
         } else show("wrong");
       });
       list.appendChild(b);
@@ -424,42 +485,129 @@ body{
     });
   }
 
-  var elChoices = document.getElementById("choices");
+  // ---------- part ring: choices orbit the house; the one at the front (bottom) is chosen
+  var dial = document.getElementById("dial");
+  var orbs = [], rot = 0, frontIdx = -1, anim = null, curStep = null;
+
+  function wrap(i, n){ return ((i % n) + n) % n; }
+
+  function layoutRing(){
+    var n = orbs.length; if (!n) return;
+    var w = dial.clientWidth, h = dial.clientHeight;
+    var cx = w / 2, cy = h / 2, rx = w * 0.42, ry = h * 0.42;
+    orbs.forEach(function(el, i){
+      var a = (i - rot) * 2 * Math.PI / n;          // 0 = front (bottom)
+      var depth = (Math.cos(a) + 1) / 2;            // 1 front … 0 back
+      var x = cx + rx * Math.sin(a), y = cy + ry * Math.cos(a);
+      var sc = 0.7 + 0.5 * depth;
+      el.style.transform = "translate(" + x.toFixed(1) + "px," + y.toFixed(1) + "px) scale(" + sc.toFixed(3) + ")";
+      el.style.zIndex = String(Math.round(depth * 40) + (depth > 0.9 ? 20 : 0));
+      el.style.opacity = (0.55 + 0.45 * depth).toFixed(2);
+    });
+    var f = wrap(Math.round(rot), n);
+    if (f !== frontIdx){
+      frontIdx = f;
+      orbs.forEach(function(el, i){
+        el.classList.toggle("front", i === f);
+        el.setAttribute("aria-pressed", String(i === f));
+      });
+      var o = curStep.opts[f];
+      pick[curStep.key] = o.id;
+      document.getElementById("pick-name").textContent = o.name;
+      render(state.q + 1, false);    // the house updates as the ring turns
+    }
+  }
+
+  function spinTo(target){
+    if (anim) cancelAnimationFrame(anim);
+    if (reduceMotion){ rot = target; layoutRing(); return; }
+    var from = rot, t0 = null, dur = 320;
+    function stepFn(t){
+      if (t0 === null) t0 = t;
+      var k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      rot = from + (target - from) * e;
+      layoutRing();
+      if (k < 1) anim = requestAnimationFrame(stepFn); else anim = null;
+    }
+    anim = requestAnimationFrame(stepFn);
+  }
+
+  // nearest way round to option i
+  function spinToIndex(i){
+    var n = orbs.length, base = Math.round(rot), cur = wrap(base, n);
+    var d = i - cur; if (d > n / 2) d -= n; if (d < -n / 2) d += n;
+    spinTo(base + d);
+  }
+
+  var drag = null;
+  dial.addEventListener("pointerdown", function(e){
+    if (anim){ cancelAnimationFrame(anim); anim = null; }
+    drag = { x:e.clientX, rot:rot, moved:false, id:e.pointerId };
+    dial.setPointerCapture(e.pointerId);
+    dial.classList.add("dragging");
+  });
+  dial.addEventListener("pointermove", function(e){
+    if (!drag || e.pointerId !== drag.id) return;
+    var dx = e.clientX - drag.x;
+    if (Math.abs(dx) > 4) drag.moved = true;
+    rot = drag.rot - dx / 90;            // drag right → the ring turns right
+    layoutRing();
+  });
+  function endDrag(e){
+    if (!drag || e.pointerId !== drag.id) return;
+    var tapped = !drag.moved;
+    drag = null;
+    dial.classList.remove("dragging");
+    if (tapped){
+      var el = document.elementFromPoint(e.clientX, e.clientY);
+      var orb = el && el.closest ? el.closest(".orb") : null;
+      if (orb){ spinToIndex(orbs.indexOf(orb)); return; }
+    }
+    spinTo(Math.round(rot));
+  }
+  dial.addEventListener("pointerup", endDrag);
+  dial.addEventListener("pointercancel", endDrag);
+  window.addEventListener("resize", layoutRing);
+  document.getElementById("prev").addEventListener("click", function(){ spinTo(Math.round(rot) - 1); });
+  document.getElementById("nextopt").addEventListener("click", function(){ spinTo(Math.round(rot) + 1); });
+  dial.addEventListener("keydown", function(e){
+    if (e.key === "ArrowLeft"){ e.preventDefault(); spinTo(Math.round(rot) - 1); }
+    if (e.key === "ArrowRight"){ e.preventDefault(); spinTo(Math.round(rot) + 1); }
+  });
+
   function showPart(){
     var i = state.q, s = STEPS[i];
+    curStep = s;
     document.getElementById("part-count").textContent = "パーツ " + (i + 1) + " / " + STEPS.length;
     var banner = document.getElementById("banner");
     banner.src = U + s.label + ".png";
-    elChoices.innerHTML = "";
+    banner.alt = "";
+    orbs.forEach(function(el){ el.remove(); });
+    orbs = [];
     s.opts.forEach(function(o){
       var b = document.createElement("button");
-      b.className = "choice";
+      b.className = "orb" + (s.key === "land" ? " land" : "");
       b.id = "opt-" + s.key + "-" + o.id;
-      b.setAttribute("aria-pressed", String(pick[s.key] === o.id));
-      var th = document.createElement("span");
-      th.className = "thumb";
+      b.setAttribute("aria-label", o.name);
+      b.addEventListener("click", function(e){ if (e.detail === 0) spinToIndex(orbs.indexOf(b)); }); // keyboard
       if (s.key === "wall"){
         var sw = document.createElement("span");
         sw.className = "sw";
         if (o.color) sw.style.background = o.color; else sw.style.backgroundImage = "url(" + o.src + ")";
-        th.appendChild(sw);
+        b.appendChild(sw);
       } else {
         var im = document.createElement("img");
         im.src = o.src; im.alt = "";
-        th.appendChild(im);
+        b.appendChild(im);
       }
-      var lb = document.createElement("span");
-      lb.textContent = o.name;
-      b.appendChild(th); b.appendChild(lb);
-      b.addEventListener("click", function(){
-        pick[s.key] = o.id;
-        Array.prototype.forEach.call(elChoices.children, function(c){ c.setAttribute("aria-pressed", String(c === b)); });
-        render(i + 1, false);
-      });
-      elChoices.appendChild(b);
+      dial.appendChild(b);
+      orbs.push(b);
     });
-    render(i + 1, false);
+    var start = s.opts.map(function(o){ return o.id; }).indexOf(pick[s.key]);
+    rot = Math.max(0, start);
+    frontIdx = -1;
     show("part");
+    layoutRing();
   }
 
   function finish(){
@@ -474,6 +622,7 @@ body{
   document.getElementById("btn-wrong-back").addEventListener("click", function(){ show("quiz"); });
   document.getElementById("btn-to-part").addEventListener("click", showPart);
   document.getElementById("btn-part-next").addEventListener("click", function(){
+    if (anim){ cancelAnimationFrame(anim); anim = null; rot = Math.round(rot); layoutRing(); }
     if (state.q === QUIZ.length - 1){ finish(); return; }
     document.getElementById("hint").textContent = QUIZ[state.q].hint;
     show("hint");
