@@ -53,7 +53,7 @@ body{
 .start-btn img{width:100%;height:auto}
 
 /* quiz */
-.quiz-no{font-size:2rem;color:var(--pick);margin:0;text-shadow:3px 3px 0 var(--edge);letter-spacing:.06em}
+.quiz-no{width:58%;max-width:250px;height:auto}
 .qframe{
   width:100%;
   aspect-ratio:700/447;
@@ -149,7 +149,7 @@ body{
   </section>
 
   <section class="screen" id="s-quiz" hidden>
-    <p class="quiz-no" id="q-no">QUIZ 1</p>
+    <img class="quiz-no" id="q-no" src="assets/ui/quiz_1.png" alt="QUIZ 1">
     <div class="qframe"><span id="q-text"></span></div>
     <div class="abc-list" id="q-choices"></div>
   </section>
@@ -271,9 +271,9 @@ body{
     cat:{ cx:830, bottom:GROUND+330, h:300 },
     bird:{ cx:800, bottom:820, h:260 },
     momonga:{ cx:270, bottom:900, h:300 },
-    dino:{ cx:930, bottom:GROUND+60, h:980, behind:true }
+    dino:{ cx:900, bottom:GROUND-30, h:1050, behind:true }   // feet tucked behind the house
   };
-  var HOUSE_SCALE = 1.25;
+  var HOUSE_SCALE = 1.5;
 
   var cache = {};
   function load(src){
@@ -288,6 +288,7 @@ body{
     return cache[src];
   }
   STEPS.forEach(function(s){ s.opts.forEach(function(o){ if (o.src) load(o.src); if (o.wall) load(o.wall); }); });
+  for (var qi = 1; qi <= 5; qi++) load(U + "quiz_" + qi + ".png");
   var annivP = load(U + "anniv.png"), logoP = load(U + "logo.png");
 
   var state, pick;
@@ -311,7 +312,9 @@ body{
 
   function showQuiz(){
     var Q = QUIZ[state.q];
-    document.getElementById("q-no").textContent = "QUIZ " + (state.q + 1);
+    var no = document.getElementById("q-no");
+    no.src = U + "quiz_" + (state.q + 1) + ".png";
+    no.alt = "QUIZ " + (state.q + 1);
     document.getElementById("q-text").textContent = Q.q;
     var list = document.getElementById("q-choices");
     list.innerHTML = "";
@@ -369,9 +372,11 @@ body{
     return c;
   }
 
-  function drawPet(p, img){
+  function drawPet(p, img, houseH){
     var pos = PET_POS[p.id];
-    var h = pos.h, w = img.width * h / img.height;
+    // the dino always peeks over the roof, even behind the tall 3-story house
+    var h = pos.behind ? Math.max(pos.h, houseH + 260) : pos.h;
+    var w = img.width * h / img.height;
     ctx.drawImage(img, pos.cx - w / 2, pos.bottom - h, w, h);
   }
 
@@ -388,7 +393,7 @@ body{
       if (seq !== drawSeq) return;
       ctx.clearRect(0, 0, W, H);
       ctx.drawImage(r[0], 0, 0, W, H);
-      if (upto >= 5 && PET_POS[pet.id].behind) drawPet(pet, r[5]);
+      if (upto >= 5 && PET_POS[pet.id].behind) drawPet(pet, r[5], r[1].height * HOUSE_SCALE);
       if (upto >= 2){
         var layer = houseLayer(upto >= 3 ? wall : {color:null}, r[1], upto >= 3 ? r[2] : null, r[3]);
         var hw = layer.width * HOUSE_SCALE, hh = layer.height * HOUSE_SCALE;
