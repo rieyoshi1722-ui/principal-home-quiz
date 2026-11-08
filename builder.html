@@ -3,7 +3,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Yusei+Magic&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&family=Yusei+Magic&display=swap" rel="stylesheet">
 <style>
 /* layout: one phone-width column over the pixel-forest backdrop; one screen visible at a time
    (start → quiz → result → pick a part → hint → next quiz … → finished house).
@@ -21,8 +21,9 @@
   --paper:#FFFFFF;
   --ring:#ECE7DC;      /* faint orbit line on the white screen */
   --sky:#5DBEFB;       /* correct screen: pixel sky behind the clouds */
-  --gloom:#1B1626;     /* wrong screen: dark gradient with manga gloom lines */
+  --gloom:#2C4590;     /* wrong screen: blue gradient with manga gloom lines */
   --pixel:'DotGothic16','Hiragino Maru Gothic ProN',sans-serif;
+  --arcade:'Press Start 2P','DotGothic16',monospace;   /* pixel lettering on the LET'S GO button */
   --hand:'Yusei Magic','Hiragino Maru Gothic ProN','Hiragino Sans',sans-serif;   /* cute hand-lettered text for copy, questions, notes */
   color-scheme:dark;
 }
@@ -61,47 +62,49 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
 .start-head{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;margin-top:4vh}
 .start-anniv{width:56%;height:auto}
 .start-logo{width:66%;height:auto;filter:drop-shadow(0 2px 4px rgba(14,20,48,.7))}
-.start-title{width:80%;height:auto;margin-top:8px}
+.start-title{width:80%;height:auto;margin-top:18px}   /* 10px more air under the logo */
 .start-sub{font-size:calc(1.15rem + 2px);margin:0;color:var(--ink);
   text-shadow:2px 0 0 var(--edge),-2px 0 0 var(--edge),0 2px 0 var(--edge),0 -2px 0 var(--edge),2px 2px 0 var(--edge),-2px 2px 0 var(--edge),2px -2px 0 var(--edge),-2px -2px 0 var(--edge)}
-.start-lead{
-  width:88%;margin:2vh 0 0;
+.panel{                     /* white see-through panel: start copy, question, hint */
+  width:88%;
   background:color-mix(in srgb, var(--paper) 90%, transparent);
   color:var(--dark);
   border:3px solid var(--edge);border-radius:14px;
   padding:12px 14px;
-  font-size:calc(1rem + 2px);line-height:1.75;text-align:center;
+  font-size:calc(1rem + 2px);line-height:1.75;
+}
+.start-lead{
+  margin:2vh 0 0;
+  text-align:center;
   word-break:keep-all;overflow-wrap:anywhere;   /* break only at the marked phrase ends */
 }
-.start-btn{width:63%;margin-top:2vh}
-.start-btn img{width:100%;height:auto}
+.start-btn{
+  width:63%;margin-top:2vh;
+  aspect-ratio:1390/348;
+  background:url(assets/ui/btn_yellow.png) center / 100% 100% no-repeat;
+  border:0;cursor:pointer;
+  font-family:var(--arcade);font-size:calc(.95rem + 2px);color:var(--dark);
+  letter-spacing:.06em;
+}
 
 /* quiz */
-.quiz-no{width:52%;max-width:225px;height:auto}
-.qframe{
-  width:90%;
-  aspect-ratio:700/447;
-  background:url(assets/ui/quiz_frame.png) center / 100% 100% no-repeat;
-  padding:16% 12% 8% 13%;
-  display:flex;align-items:center;
-  color:var(--dark);
-  font-size:calc(1rem + 2px);line-height:1.6;
-}
+.quiz-no{width:42%;max-width:180px;height:auto}
+.qframe{width:90%;min-height:7.5em;display:flex;align-items:center;padding:16px 18px}
 .abc-list{width:90%;display:flex;flex-direction:column;gap:9px}
 .abc{
   width:100%;
-  aspect-ratio:1724/450;
+  aspect-ratio:1390/349;
   background:center / 100% 100% no-repeat;
   border:0;cursor:pointer;
   font-family:var(--hand);font-size:calc(1.05rem + 2px);color:var(--dark);
   display:flex;align-items:center;gap:11px;
-  padding:0 8%;
+  padding:0 9%;
   text-align:left;
 }
 .abc b{font-weight:400;font-size:calc(1.17rem + 2px)}
-.abc[data-l="A"]{background-image:url(assets/ui/btn_a.png)}
-.abc[data-l="B"]{background-image:url(assets/ui/btn_b.png);color:var(--paper)}
-.abc[data-l="C"]{background-image:url(assets/ui/btn_c.png);color:var(--paper)}
+.abc[data-l="A"]{background-image:url(assets/ui/btn_red.png);color:var(--paper);text-shadow:0 2px 0 rgba(120,30,0,.55)}
+.abc[data-l="B"]{background-image:url(assets/ui/btn_yellow.png);color:var(--dark)}
+.abc[data-l="C"]{background-image:url(assets/ui/btn_green.png);color:var(--paper);text-shadow:0 2px 0 rgba(20,80,0,.55)}
 
 /* result: no frame, text and icon separate, icon sits in the middle of the screen */
 .result{min-height:calc(100svh - 40px);gap:16px}
@@ -131,15 +134,25 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
     70%{transform:scale(.94)}
     100%{transform:scale(1)}
   }
+  /* 不正解: the right side suddenly drops, as if a hinge on the left gave way */
+  .drop{transform-origin:6% 55%;animation:drop .9s both}
+  @keyframes drop{
+    0%,30%{transform:rotate(0)}
+    48%{transform:rotate(17deg);animation-timing-function:ease-out}
+    62%{transform:rotate(11deg)}
+    76%{transform:rotate(15deg)}
+    100%{transform:rotate(14deg)}
+  }
 }
 
 /* part pick: white page, house fixed in the middle, choices orbit around it */
 .step-count{font-size:calc(.85rem + 2px);letter-spacing:.12em;margin:0;color:var(--muted-dark)}
 .banner{width:74%;max-width:306px}
+#s-part{height:calc(100svh - 36px);gap:8px}   /* banner to the decide button fits one screen */
 .dial{
   position:relative;
   width:100%;
-  height:min(132vw, 560px);
+  flex:1;min-height:0;
   touch-action:pan-y;
   user-select:none;-webkit-user-select:none;
   cursor:grab;
@@ -155,14 +168,15 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
 }
 .stage{
   position:absolute;left:50%;top:50%;
-  width:38%;
+  height:66%;
+  aspect-ratio:1290/2785;
   transform:translate(-50%,-50%);
   border:3px solid var(--dark);
   line-height:0;
   z-index:50;
   background:var(--paper);
 }
-.stage canvas{width:100%;height:auto;display:block}
+.stage canvas{width:100%;height:100%;display:block}
 .orb{
   position:absolute;left:0;top:0;
   width:76px;height:76px;
@@ -179,7 +193,9 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
 .orb.land img{max-width:100%;max-height:none;width:100%;height:100%;object-fit:cover}
 .orb .sw{width:100%;height:100%;background-size:cover;background-position:center}
 .orb.front{border-color:var(--pick);box-shadow:0 0 0 3px var(--dark)}
-.pick-row{display:flex;align-items:center;justify-content:center;gap:16px;width:100%}
+.pick-row{display:flex;align-items:center;justify-content:center;gap:16px;width:100%;flex:none}
+.decide{flex:none}
+.decide img{height:62px;width:auto}
 .arrow{
   font-family:var(--hand);font-size:calc(1.1rem + 2px);
   width:40px;height:40px;
@@ -198,6 +214,10 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
   padding:11px 16px;cursor:pointer;
 }
 .note{font-size:calc(.85rem + 2px);color:var(--muted);text-align:center;line-height:1.7;margin:0}
+.panel p.note{color:var(--muted-dark);font-size:calc(.75rem + 2px);margin-top:8px}
+.panel h2{font-weight:400;font-size:calc(.8rem + 2px);letter-spacing:.12em;margin:0 0 4px;color:#7A5B12}
+.panel p{margin:0}
+#s-hint{padding-top:6vh;gap:18px}
 
 /* done */
 .done-title{font-size:calc(1.53rem + 2px);color:var(--pick);margin:0;text-shadow:3px 3px 0 var(--edge)}
@@ -220,13 +240,13 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
       <img class="start-title" src="assets/ui/title_house.png" alt="HOUSE QUIZ RALLY">
       <p class="start-sub">おうちづくりクイズラリー</p>
     </div>
-    <p class="start-lead">クイズに正解して、<wbr>家のパーツをゲット!<br>5問クリアで、<wbr>あなただけの<wbr>理想の家が完成。</p>
-    <button class="img-btn start-btn" id="btn-start"><img src="assets/ui/btn_start.png" alt="LET'S GO!"></button>
+    <p class="panel start-lead">クイズに正解して、<wbr>家のパーツをゲット!<br>5問クリアで、<wbr>あなただけの<wbr>理想の家が完成。</p>
+    <button class="start-btn" id="btn-start">LET'S GO!</button>
   </section>
 
   <section class="screen" id="s-quiz" hidden>
     <img class="quiz-no" id="q-no" src="assets/ui/quiz_1.png" alt="QUIZ 1">
-    <div class="qframe"><span id="q-text"></span></div>
+    <div class="panel qframe"><span id="q-text"></span></div>
     <div class="abc-list" id="q-choices"></div>
   </section>
 
@@ -260,16 +280,14 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
       <button class="arrow" id="nextopt" aria-label="ひとつ次">▶</button>
     </div>
     <p class="swipe-note">左右にスライドして、くるっと回してえらぼう</p>
-    <button class="img-btn" id="btn-part-next"><img class="nav-img" src="assets/ui/btn_next.png" alt="つぎへ"></button>
+    <button class="img-btn decide" id="btn-part-next"><img src="assets/ui/btn_decide.png" alt="けってい"></button>
   </section>
 
   <section class="screen" id="s-hint" hidden>
-    <div class="plate">
-      <p class="hint-title">つぎの問題はどこ?</p>
-      <div class="box"><h2>ヒント</h2><p id="hint"></p></div>
-      <p class="note">本番では、ここで次の場所のQRコードを探して読みとります。</p>
-      <button class="plain-btn" id="btn-scan">QRを読みとったことにする</button>
-    </div>
+    <p class="hint-title">つぎの問題はどこ?</p>
+    <div class="panel"><h2>ヒント</h2><p id="hint"></p>
+      <p class="note">本番では、ここで次の場所のQRコードを探して読みとります。</p></div>
+    <button class="plain-btn" id="btn-scan">QRを読みとったことにする</button>
   </section>
 
   <section class="screen" id="s-done" hidden>
@@ -402,6 +420,11 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
     document.body.classList.toggle("gloom", name === "wrong");
     window.scrollTo(0, 0);
   }
+  function replayAnim(el, cls){
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+  }
   function replayPop(el){
     el.classList.remove("pop");
     void el.offsetWidth;
@@ -431,7 +454,10 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
           document.getElementById("explain").textContent = Q.ex;
           show("correct");
           replayPop(document.getElementById("correct-text"));
-        } else show("wrong");
+        } else {
+          show("wrong");
+          replayAnim(document.getElementById("wrong-text"), "drop");
+        }
       });
       list.appendChild(b);
     });
