@@ -20,6 +20,7 @@
   --edge:#0E1430;
   --paper:#FFFFFF;
   --ring:#ECE7DC;      /* faint orbit line on the white screen */
+  --forest-sky:#0999F9; /* top colour of the forest backdrop, fills tall screens */
   --sky:#5DBEFB;       /* correct screen: pixel sky behind the clouds */
   --gloom:#2C4590;     /* wrong screen: blue gradient with manga gloom lines */
   --pixel:'DotGothic16','Hiragino Maru Gothic ProN',sans-serif;
@@ -31,12 +32,19 @@
 [hidden]{display:none!important}
 html,body{min-height:100%}
 body{
-  background:var(--bg) url(assets/ui/bg_forest.jpg) center top / cover fixed;
+  background:var(--forest-sky);
   color:var(--ink);
   font-family:var(--hand);
   padding-left:max(16px, env(safe-area-inset-left, 0px));
   padding-right:max(16px, env(safe-area-inset-right, 0px));
 }
+/* forest backdrop: shown edge to edge (never cropped at the sides, so the trees stay whole at the
+   screen edges), standing on the bottom of the screen; taller screens get more plain sky on top */
+body::after{
+  content:"";position:fixed;inset:0;z-index:-1;
+  background:var(--forest-sky) url(assets/ui/bg_forest.jpg) center bottom / 100% auto no-repeat;
+}
+body.white::after,body.sky::after,body.gloom::after{display:none}
 body.white{background:var(--paper);color:var(--dark)}
 body.sky{background:var(--sky) url(assets/ui/bg_sky.png) center top / cover fixed;image-rendering:pixelated}
 body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cover fixed}
