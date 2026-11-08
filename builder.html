@@ -111,7 +111,7 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
 .result .grow{flex:1}
 .result .low{padding-bottom:7vh}      /* back / next sit a little low on the screen */
 .res-text{width:53%;height:auto}
-.res-text.wrong{width:53%}
+.res-text.wrong{width:53%;transform-origin:6% 55%}   /* hinge for the drop */
 .res-icon{width:42%;height:auto}
 .res-icon.wrong{width:33%}
 .box{
@@ -133,15 +133,6 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
     45%{transform:scale(1.22);opacity:1}
     70%{transform:scale(.94)}
     100%{transform:scale(1)}
-  }
-  /* 不正解: the right side suddenly drops, as if a hinge on the left gave way */
-  .drop{transform-origin:6% 55%;animation:drop .9s both}
-  @keyframes drop{
-    0%,30%{transform:rotate(0)}
-    48%{transform:rotate(17deg);animation-timing-function:ease-out}
-    62%{transform:rotate(11deg)}
-    76%{transform:rotate(15deg)}
-    100%{transform:rotate(14deg)}
   }
 }
 
@@ -397,7 +388,39 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
   }
   STEPS.forEach(function(s){ s.opts.forEach(function(o){ load(o.src); if (o.shape) load(o.shape); }); });
   for (var qi = 1; qi <= 5; qi++) load(U + "quiz_" + qi + ".png");
+  ["res_correct_text","res_correct_icon","res_wrong_text","res_wrong_icon"].forEach(function(n){ load(U + n + ".png"); });
   var annivP = load(U + "anniv.png"), logoP = load(U + "logo.png");
+
+  // ---------- music: starts with LET'S GO, loops quietly, rests on the wrong-answer screen
+  var BGM_VOLUME = 0.3;
+  var bgm = new Audio("assets/audio/bgm.mp3");
+  bgm.loop = true;
+  bgm.preload = "auto";
+  var musicOn = false, audioCtx = null;
+  function startMusic(){
+    musicOn = true;
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!audioCtx && AC){
+      // iPhones ignore audio.volume, so the volume goes through a gain node
+      try {
+        audioCtx = new AC();
+        var gain = audioCtx.createGain();
+        gain.gain.value = BGM_VOLUME;
+        audioCtx.createMediaElementSource(bgm).connect(gain);
+        gain.connect(audioCtx.destination);
+      } catch (e){ audioCtx = null; }
+    }
+    if (audioCtx) audioCtx.resume();
+    else bgm.volume = BGM_VOLUME;
+    playMusic();
+  }
+  function playMusic(){
+    if (musicOn && bgm.paused) bgm.play().catch(function(){});
+  }
+  document.addEventListener("visibilitychange", function(){
+    if (document.hidden) bgm.pause();
+    else if (document.getElementById("s-wrong").hidden) playMusic();
+  });
 
   var state, pick;
   function reset(){
@@ -418,12 +441,25 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
     document.body.classList.toggle("white", name === "part");
     document.body.classList.toggle("sky", name === "correct");
     document.body.classList.toggle("gloom", name === "wrong");
+    if (name === "wrong") bgm.pause(); else playMusic();
     window.scrollTo(0, 0);
   }
-  function replayAnim(el, cls){
-    el.classList.remove(cls);
-    void el.offsetWidth;
-    el.classList.add(cls);
+  // 不正解: the right side suddenly drops, as if a hinge on the left gave way.
+  // Runs through the Web Animations API once the image is ready, so it plays every time.
+  function dropText(el){
+    if (el.getAnimations) el.getAnimations().forEach(function(a){ a.cancel(); });
+    if (reduceMotion || !el.animate) return;
+    var ready = el.decode ? el.decode().catch(function(){}) : Promise.resolve();
+    ready.then(function(){
+      el.animate([
+        { transform:"rotate(0)", offset:0 },
+        { transform:"rotate(0)", offset:.3 },
+        { transform:"rotate(17deg)", offset:.48, easing:"ease-out" },
+        { transform:"rotate(11deg)", offset:.62 },
+        { transform:"rotate(15deg)", offset:.76 },
+        { transform:"rotate(14deg)", offset:1 }
+      ], { duration:900, fill:"forwards" });
+    });
   }
   function replayPop(el){
     el.classList.remove("pop");
@@ -456,7 +492,7 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
           replayPop(document.getElementById("correct-text"));
         } else {
           show("wrong");
-          replayAnim(document.getElementById("wrong-text"), "drop");
+          dropText(document.getElementById("wrong-text"));
         }
       });
       list.appendChild(b);
@@ -682,7 +718,10 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
   }
 
   // ---------- buttons
-  document.getElementById("btn-start").addEventListener("click", showQuiz);
+  document.getElementById("btn-start").addEventListener("click", function(){
+    startMusic();
+    showQuiz();
+  });
   document.getElementById("btn-wrong-back").addEventListener("click", function(){ show("quiz"); });
   document.getElementById("btn-to-part").addEventListener("click", showPart);
   document.getElementById("btn-part-next").addEventListener("click", function(){
