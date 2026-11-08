@@ -3,7 +3,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Yusei+Magic&display=swap" rel="stylesheet">
 <style>
 /* layout: one phone-width column over the pixel-forest backdrop; one screen visible at a time
    (start → quiz → result → pick a part → hint → next quiz … → finished house).
@@ -23,6 +23,7 @@
   --sky:#5DBEFB;       /* correct screen: pixel sky behind the clouds */
   --gloom:#1B1626;     /* wrong screen: dark gradient with manga gloom lines */
   --pixel:'DotGothic16','Hiragino Maru Gothic ProN',sans-serif;
+  --hand:'Yusei Magic','Hiragino Maru Gothic ProN','Hiragino Sans',sans-serif;   /* cute hand-lettered text for copy, questions, notes */
   color-scheme:dark;
 }
 *,*::before,*::after{box-sizing:border-box}
@@ -31,7 +32,7 @@ html,body{min-height:100%}
 body{
   background:var(--bg) url(assets/ui/bg_forest.jpg) center top / cover fixed;
   color:var(--ink);
-  font-family:var(--pixel);
+  font-family:var(--hand);
   padding-left:max(16px, env(safe-area-inset-left, 0px));
   padding-right:max(16px, env(safe-area-inset-right, 0px));
 }
@@ -42,7 +43,7 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
 .screen{display:flex;flex-direction:column;align-items:center;gap:14px}
 .trial-tag{
   align-self:flex-start;
-  font-size:.75rem;letter-spacing:.1em;
+  font-size:calc(.75rem + 2px);letter-spacing:.1em;
   background:var(--edge);color:var(--pick);
   padding:3px 8px;margin:0;
 }
@@ -57,8 +58,22 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
 .img-btn:focus-visible,.abc:focus-visible,.orb:focus-visible,.plain-btn:focus-visible,.arrow:focus-visible{outline:3px solid var(--pick);outline-offset:3px}
 
 /* start */
-.start-title{width:83%;margin-top:6vh}
-.start-btn{width:63%;margin-top:4vh}
+.start-head{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;margin-top:4vh}
+.start-anniv{width:56%;height:auto}
+.start-logo{width:66%;height:auto;filter:drop-shadow(0 2px 4px rgba(14,20,48,.7))}
+.start-title{width:80%;height:auto;margin-top:8px}
+.start-sub{font-size:calc(1.15rem + 2px);margin:0;color:var(--ink);
+  text-shadow:2px 0 0 var(--edge),-2px 0 0 var(--edge),0 2px 0 var(--edge),0 -2px 0 var(--edge),2px 2px 0 var(--edge),-2px 2px 0 var(--edge),2px -2px 0 var(--edge),-2px -2px 0 var(--edge)}
+.start-lead{
+  width:88%;margin:2vh 0 0;
+  background:color-mix(in srgb, var(--paper) 90%, transparent);
+  color:var(--dark);
+  border:3px solid var(--edge);border-radius:14px;
+  padding:12px 14px;
+  font-size:calc(1rem + 2px);line-height:1.75;text-align:center;
+  word-break:keep-all;overflow-wrap:anywhere;   /* break only at the marked phrase ends */
+}
+.start-btn{width:63%;margin-top:2vh}
 .start-btn img{width:100%;height:auto}
 
 /* quiz */
@@ -70,7 +85,7 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
   padding:16% 12% 8% 13%;
   display:flex;align-items:center;
   color:var(--dark);
-  font-size:1rem;line-height:1.6;
+  font-size:calc(1rem + 2px);line-height:1.6;
 }
 .abc-list{width:90%;display:flex;flex-direction:column;gap:9px}
 .abc{
@@ -78,12 +93,12 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
   aspect-ratio:1724/450;
   background:center / 100% 100% no-repeat;
   border:0;cursor:pointer;
-  font-family:var(--pixel);font-size:1.05rem;color:var(--dark);
+  font-family:var(--hand);font-size:calc(1.05rem + 2px);color:var(--dark);
   display:flex;align-items:center;gap:11px;
   padding:0 8%;
   text-align:left;
 }
-.abc b{font-weight:400;font-size:1.17rem}
+.abc b{font-weight:400;font-size:calc(1.17rem + 2px)}
 .abc[data-l="A"]{background-image:url(assets/ui/btn_a.png)}
 .abc[data-l="B"]{background-image:url(assets/ui/btn_b.png);color:var(--paper)}
 .abc[data-l="C"]{background-image:url(assets/ui/btn_c.png);color:var(--paper)}
@@ -103,9 +118,9 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
   box-shadow:4px 4px 0 var(--edge);
   padding:11px 13px;
   line-height:1.7;
-  font-size:.95rem;
+  font-size:calc(.95rem + 2px);
 }
-.box h2{font-weight:400;font-size:.8rem;letter-spacing:.12em;margin:0 0 4px;color:#7A5B12}
+.box h2{font-weight:400;font-size:calc(.8rem + 2px);letter-spacing:.12em;margin:0 0 4px;color:#7A5B12}
 .box p{margin:0}
 .nav-img{height:41px;width:auto}
 @media (prefers-reduced-motion:no-preference){
@@ -119,7 +134,7 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
 }
 
 /* part pick: white page, house fixed in the middle, choices orbit around it */
-.step-count{font-size:.85rem;letter-spacing:.12em;margin:0;color:var(--muted-dark)}
+.step-count{font-size:calc(.85rem + 2px);letter-spacing:.12em;margin:0;color:var(--muted-dark)}
 .banner{width:74%;max-width:306px}
 .dial{
   position:relative;
@@ -166,26 +181,26 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
 .orb.front{border-color:var(--pick);box-shadow:0 0 0 3px var(--dark)}
 .pick-row{display:flex;align-items:center;justify-content:center;gap:16px;width:100%}
 .arrow{
-  font-family:var(--pixel);font-size:1.1rem;
+  font-family:var(--hand);font-size:calc(1.1rem + 2px);
   width:40px;height:40px;
   border:3px solid var(--dark);background:var(--pick);color:var(--dark);
   cursor:pointer;
 }
-.pick-name{font-size:1.25rem;min-width:9em;text-align:center;margin:0}
-.swipe-note{font-size:.8rem;color:var(--muted-dark);margin:0}
+.pick-name{font-size:calc(1.25rem + 2px);min-width:9em;text-align:center;margin:0}
+.swipe-note{font-size:calc(.8rem + 2px);color:var(--muted-dark);margin:0}
 
 /* hint */
-.hint-title{font-size:1.26rem;color:var(--pick);margin:0;text-shadow:3px 3px 0 var(--edge)}
+.hint-title{font-size:calc(1.26rem + 2px);color:var(--pick);margin:0;text-shadow:3px 3px 0 var(--edge)}
 .plain-btn{
-  font-family:var(--pixel);font-size:.9rem;
+  font-family:var(--hand);font-size:calc(.9rem + 2px);
   background:var(--pick);color:var(--dark);
   border:3px solid var(--edge);box-shadow:3px 3px 0 var(--edge);
   padding:11px 16px;cursor:pointer;
 }
-.note{font-size:.85rem;color:var(--muted);text-align:center;line-height:1.7;margin:0}
+.note{font-size:calc(.85rem + 2px);color:var(--muted);text-align:center;line-height:1.7;margin:0}
 
 /* done */
-.done-title{font-size:1.53rem;color:var(--pick);margin:0;text-shadow:3px 3px 0 var(--edge)}
+.done-title{font-size:calc(1.53rem + 2px);color:var(--pick);margin:0;text-shadow:3px 3px 0 var(--edge)}
 .final{width:min(78vw, 320px);border:4px solid var(--edge);box-shadow:0 0 0 3px var(--pick)}
 
 @media (prefers-reduced-motion:no-preference){
@@ -199,7 +214,13 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
 
   <section class="screen" id="s-start">
     <p class="trial-tag">お試し版</p>
-    <img class="start-title" src="assets/ui/title.png" alt="22nd ANNIVERSARY PRINCIPAL HOME QUIZ RALLY">
+    <div class="start-head">
+      <img class="start-anniv" src="assets/ui/anniv.png" alt="22nd ANNIVERSARY">
+      <img class="start-logo" src="assets/ui/logo.png" alt="プリンシパルホーム">
+      <img class="start-title" src="assets/ui/title_house.png" alt="HOUSE QUIZ RALLY">
+      <p class="start-sub">おうちづくりクイズラリー</p>
+    </div>
+    <p class="start-lead">クイズに正解して、<wbr>家のパーツをゲット!<br>5問クリアで、<wbr>あなただけの<wbr>理想の家が完成。</p>
     <button class="img-btn start-btn" id="btn-start"><img src="assets/ui/btn_start.png" alt="LET'S GO!"></button>
   </section>
 
