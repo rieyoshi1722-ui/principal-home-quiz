@@ -391,34 +391,55 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
   ["res_correct_text","res_correct_icon","res_wrong_text","res_wrong_icon"].forEach(function(n){ load(U + n + ".png"); });
   var annivP = load(U + "anniv.png"), logoP = load(U + "logo.png");
 
-  // ---------- music: starts with LET'S GO, loops quietly, rests on the wrong-answer screen
-  var BGM_VOLUME = 0.3;
-  var bgm = new Audio("assets/audio/bgm.mp3");
-  bgm.loop = true;
-  bgm.preload = "auto";
-  var musicOn = false, audioCtx = null;
+  // ---------- music: starts with LET'S GO, loops quietly, rests on the wrong-answer screen.
+  // The song is decoded once and played as a looping sound buffer: an <audio loop> routed
+  // through Web Audio can stop at the end of the song on iPhones.
+  var BGM_SRC = "assets/audio/bgm.mp3", BGM_VOLUME = 0.15;
+  var musicOn = false, musicPaused = false, audioCtx = null, fallback = null;
   function startMusic(){
+    if (musicOn) return;
     musicOn = true;
     var AC = window.AudioContext || window.webkitAudioContext;
-    if (!audioCtx && AC){
-      // iPhones ignore audio.volume, so the volume goes through a gain node
-      try {
-        audioCtx = new AC();
-        var gain = audioCtx.createGain();
-        gain.gain.value = BGM_VOLUME;
-        audioCtx.createMediaElementSource(bgm).connect(gain);
-        gain.connect(audioCtx.destination);
-      } catch (e){ audioCtx = null; }
-    }
-    if (audioCtx) audioCtx.resume();
-    else bgm.volume = BGM_VOLUME;
+    if (!AC){ startFallback(); return; }
+    audioCtx = new AC();                       // created inside the tap, so phones allow sound
+    var gain = audioCtx.createGain();          // iPhones ignore audio.volume; volume goes through here
+    gain.gain.value = BGM_VOLUME;
+    gain.connect(audioCtx.destination);
+    fetch(BGM_SRC).then(function(r){ return r.arrayBuffer(); }).then(function(data){
+      return new Promise(function(res, rej){ audioCtx.decodeAudioData(data, res, rej); });
+    }).then(function(buf){
+      var src = audioCtx.createBufferSource();
+      src.buffer = buf;
+      src.loop = true;
+      src.connect(gain);
+      src.start(0);
+      if (musicPaused) audioCtx.suspend();
+    }).catch(function(){
+      audioCtx.close(); audioCtx = null;
+      startFallback();
+    });
+  }
+  function startFallback(){
+    fallback = new Audio(BGM_SRC);
+    fallback.loop = true;
+    fallback.volume = BGM_VOLUME;
+    // belt and braces for browsers that drop the loop
+    fallback.addEventListener("ended", function(){ fallback.currentTime = 0; playMusic(); });
     playMusic();
   }
   function playMusic(){
-    if (musicOn && bgm.paused) bgm.play().catch(function(){});
+    musicPaused = false;
+    if (!musicOn) return;
+    if (audioCtx) audioCtx.resume();
+    else if (fallback && fallback.paused) fallback.play().catch(function(){});
+  }
+  function pauseMusic(){
+    musicPaused = true;
+    if (audioCtx) audioCtx.suspend();
+    else if (fallback) fallback.pause();
   }
   document.addEventListener("visibilitychange", function(){
-    if (document.hidden) bgm.pause();
+    if (document.hidden) pauseMusic();
     else if (document.getElementById("s-wrong").hidden) playMusic();
   });
 
@@ -441,7 +462,7 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
     document.body.classList.toggle("white", name === "part");
     document.body.classList.toggle("sky", name === "correct");
     document.body.classList.toggle("gloom", name === "wrong");
-    if (name === "wrong") bgm.pause(); else playMusic();
+    if (name === "wrong") pauseMusic(); else playMusic();
     window.scrollTo(0, 0);
   }
   // 不正解: the right side suddenly drops, as if a hinge on the left gave way.
