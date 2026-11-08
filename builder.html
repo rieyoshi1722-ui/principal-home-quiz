@@ -395,7 +395,7 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
   // An <audio> element keeps playing when an iPhone is on silent (pure Web Audio does not);
   // its sound goes through a gain node because iPhones ignore audio.volume. The loop is done
   // by hand on "ended", since the loop attribute can stop at the song's end on iPhones.
-  var BGM_VOLUME = 0.15;
+  var BGM_VOLUME = 0.07;
   var bgm = new Audio("assets/audio/bgm.mp3");
   bgm.preload = "auto";
   bgm.addEventListener("ended", function(){
