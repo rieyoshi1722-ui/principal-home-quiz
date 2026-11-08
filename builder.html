@@ -231,7 +231,7 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
     <img class="banner" id="banner" src="assets/ui/label_land.png" alt="土地をえらぼう!">
     <div class="dial" id="dial">
       <div class="orbit"></div>
-      <div class="stage"><canvas id="cv" width="1080" height="2109"></canvas></div>
+      <div class="stage"><canvas id="cv" width="1290" height="2785"></canvas></div>
     </div>
     <div class="pick-row">
       <button class="arrow" id="prev" aria-label="ひとつ前">◀</button>
@@ -266,7 +266,7 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
 (function(){
   "use strict";
   var P = "assets/parts/", U = "assets/ui/";
-  var W = 1080, H = 2109, GROUND = Math.round(H * 0.80);
+  var W = 1290, H = 2785;
   var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // 仮の問題（あとで本番の問題に入れかえる）
@@ -301,43 +301,46 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
       { id:"space", name:"宇宙", src:P+"land_space.jpg" }
     ]},
     { key:"house", label:"label_house", opts:[
-      { id:"flat", name:"平屋", src:P+"house_flat.png", wall:P+"house_flat_wall.png" },
-      { id:"2f", name:"2階建て", src:P+"house_2f.png", wall:P+"house_2f_wall.png" },
-      { id:"3f", name:"屋上つき3階建て", src:P+"house_3f.png", wall:P+"house_3f_wall.png" },
-      { id:"garage", name:"ガレージハウス", src:P+"house_garage.png", wall:P+"house_garage_wall.png" },
-      { id:"castle", name:"お城", src:P+"house_castle.png", wall:P+"house_castle_wall.png" }
+      { id:"flat", name:"平屋", src:P+"house_flat.webp", shape:P+"house_flat_shape.png" },
+      { id:"2f", name:"2階建て", src:P+"house_2f.webp", shape:P+"house_2f_shape.png" },
+      { id:"3f", name:"屋上つき3階建て", src:P+"house_3f.webp", shape:P+"house_3f_shape.png" },
+      { id:"garage", name:"ガレージハウス", src:P+"house_garage.webp", shape:P+"house_garage_shape.png" },
+      { id:"castle", name:"お城", src:P+"house_castle.webp", shape:P+"house_castle_shape.png" }
     ]},
     { key:"wall", label:"label_wall", opts:[
-      { id:"white", name:"白", color:"#F7F4EC" },
-      { id:"wood", name:"木目", src:P+"wall_wood.png" },
-      { id:"navy", name:"ネイビー", color:"#2F4063" },
-      { id:"candy", name:"お菓子", src:P+"wall_candy.png" },
-      { id:"gold", name:"金ぱく", src:P+"wall_gold.png" }
+      { id:"tile", name:"白いタイル", src:P+"wall_tile.jpg" },
+      { id:"galva", name:"ガルバリウム", src:P+"wall_galva.jpg" },
+      { id:"log", name:"ログハウス風", src:P+"wall_log.jpg" },
+      { id:"candy", name:"お菓子の家風", src:P+"wall_candy.jpg" },
+      { id:"gold", name:"金ぱく", src:P+"wall_gold.jpg" }
     ]},
     { key:"garden", label:"label_garden", opts:[
-      { id:"pool", name:"プール", src:P+"garden_pool.png" },
-      { id:"flower", name:"花だん", src:P+"garden_flower.png" },
-      { id:"farm", name:"畑", src:P+"garden_farm.png" },
-      { id:"lawn", name:"芝生", src:P+"garden_lawn.png" }
+      { id:"pool", name:"プール", src:P+"garden_pool.webp" },
+      { id:"flower", name:"ガーデニング", src:P+"garden_flower.webp" },
+      { id:"farm", name:"畑", src:P+"garden_farm.webp" },
+      { id:"lawn", name:"芝生の庭", src:P+"garden_lawn.webp" }
     ]},
     { key:"pet", label:"label_pet", opts:[
-      { id:"dog", name:"犬", src:P+"pet_dog.png" },
-      { id:"cat", name:"ねこ", src:P+"pet_cat.png" },
-      { id:"bird", name:"鳥", src:P+"pet_bird.png" },
-      { id:"momonga", name:"モモンガ", src:P+"pet_momonga.png" },
-      { id:"dino", name:"恐竜", src:P+"pet_dino.png" }
+      { id:"dog", name:"犬", src:P+"pet_dog.webp" },
+      { id:"cat", name:"ねこ", src:P+"pet_cat.webp" },
+      { id:"bird", name:"インコ", src:P+"pet_bird.webp" },
+      { id:"momonga", name:"モモンガ", src:P+"pet_momonga.webp" },
+      { id:"dino", name:"恐竜", src:P+"pet_dino.webp" }
     ]}
   ];
 
-  // where each pet sits: cx = center x, bottom = foot line, h = drawn height
-  var PET_POS = {
-    dog:{ cx:830, bottom:GROUND+330, h:300 },
-    cat:{ cx:830, bottom:GROUND+330, h:300 },
-    bird:{ cx:800, bottom:820, h:260 },
-    momonga:{ cx:270, bottom:900, h:300 },
-    dino:{ cx:900, bottom:GROUND-30, h:1050, behind:true }   // feet tucked behind the house
+  // layout from the placement sketch (430 x 932 screen), as fractions of the picture.
+  // box = x, y, w, h of the area a part may fill; parts keep their shape and sit on the box bottom.
+  var BOX = {
+    house:  { x:.206, y:.294, w:.588, h:.374 },   // house bottom = 1/3 from the bottom
+    garden: { x:.026, y:.655, w:.840, h:.345 },   // from the house front to the bottom edge
+    fly:    { x:.118, y:.154, w:.300, h:.137 },   // bird, momonga: upper left of the house
+    land:   { x:.702, y:.573, w:.278, h:.204 },   // dog, cat: lower right, over the garden edge
+    dino:   { x:.560, y:.420, w:.430, h:.360 }    // the dino needs a bigger box in the same corner
   };
-  var HOUSE_SCALE = 1.5;
+  var PET_BOX = { dog:"land", cat:"land", bird:"fly", momonga:"fly", dino:"dino" };
+  var WALL_TILE = 320;            // px of one wall texture tile on the picture
+  var BARE_WALL = "#E9E6E1";      // wall color before a wall is chosen
 
   var cache = {};
   function load(src){
@@ -351,14 +354,14 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
     }
     return cache[src];
   }
-  STEPS.forEach(function(s){ s.opts.forEach(function(o){ if (o.src) load(o.src); if (o.wall) load(o.wall); }); });
+  STEPS.forEach(function(s){ s.opts.forEach(function(o){ load(o.src); if (o.shape) load(o.shape); }); });
   for (var qi = 1; qi <= 5; qi++) load(U + "quiz_" + qi + ".png");
   var annivP = load(U + "anniv.png"), logoP = load(U + "logo.png");
 
   var state, pick;
   function reset(){
     state = { q:0 };
-    pick = { land:"sea", house:"2f", wall:"white", garden:"lawn", pet:"dog" };
+    pick = { land:"sea", house:"2f", wall:"tile", garden:"lawn", pet:"dog" };
   }
   reset();
 
@@ -416,41 +419,36 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
   var cv = document.getElementById("cv");
   var ctx = cv.getContext("2d");
 
-  function houseLayer(wall, hImg, mImg, tImg){
-    var c = document.createElement("canvas");
-    c.width = hImg.width; c.height = hImg.height;
-    var x = c.getContext("2d");
-    x.drawImage(hImg, 0, 0);
-    if (!mImg) return c;
-    var f = document.createElement("canvas");
-    f.width = c.width; f.height = c.height;
-    var fx = f.getContext("2d");
-    if (wall.color){
-      fx.fillStyle = wall.color;
-      fx.fillRect(0, 0, f.width, f.height);
-    } else if (tImg){
-      var t = 150 / HOUSE_SCALE;
-      for (var yy = 0; yy < f.height; yy += t)
-        for (var xx = 0; xx < f.width; xx += t) fx.drawImage(tImg, xx, yy, t, t);
-    }
-    // mask is a grayscale image: turn it into alpha
-    var m = document.createElement("canvas");
-    m.width = f.width; m.height = f.height;
-    var mx = m.getContext("2d");
-    mx.drawImage(mImg, 0, 0);
-    var md = mx.getImageData(0, 0, m.width, m.height), fd = fx.getImageData(0, 0, f.width, f.height);
-    for (var i = 0; i < md.data.length; i += 4) fd.data[i + 3] = md.data[i];
-    fx.putImageData(fd, 0, 0);
-    x.drawImage(f, 0, 0);
-    return c;
+  // fit an image into a box (fractions of the picture), keep its shape, stand it on the box bottom
+  function place(img, b){
+    var bw = b.w * W, bh = b.h * H;
+    var k = Math.min(bw / img.width, bh / img.height);
+    var w = img.width * k, h = img.height * k;
+    return { x: b.x * W + (bw - w) / 2, y: b.y * H + bh - h, w: w, h: h };
   }
 
-  function drawPet(p, img, houseH){
-    var pos = PET_POS[p.id];
-    // the dino always peeks over the roof, even behind the tall 3-story house
-    var h = pos.behind ? Math.max(pos.h, houseH + 260) : pos.h;
-    var w = img.width * h / img.height;
-    ctx.drawImage(img, pos.cx - w / 2, pos.bottom - h, w, h);
+  // the house walls are see-through: paint the wall texture inside the house shape, then the house on top
+  function drawHouse(hImg, shapeImg, tImg){
+    var r = place(hImg, BOX.house);
+    var f = document.createElement("canvas");
+    f.width = Math.ceil(r.w); f.height = Math.ceil(r.h);
+    var fx = f.getContext("2d");
+    if (tImg){
+      for (var yy = 0; yy < f.height; yy += WALL_TILE)
+        for (var xx = 0; xx < f.width; xx += WALL_TILE) fx.drawImage(tImg, xx, yy, WALL_TILE, WALL_TILE);
+    } else {
+      fx.fillStyle = BARE_WALL;
+      fx.fillRect(0, 0, f.width, f.height);
+    }
+    fx.globalCompositeOperation = "destination-in";
+    fx.drawImage(shapeImg, 0, 0, f.width, f.height);
+    ctx.drawImage(f, r.x, r.y, r.w, r.h);
+    ctx.drawImage(hImg, r.x, r.y, r.w, r.h);
+  }
+
+  function drawIn(img, b){
+    var r = place(img, b);
+    ctx.drawImage(img, r.x, r.y, r.w, r.h);
   }
 
   var drawSeq = 0;
@@ -459,33 +457,24 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
     var seq = ++drawSeq;
     var land = opt("land"), house = opt("house"), wall = opt("wall"), garden = opt("garden"), pet = opt("pet");
     return Promise.all([
-      load(land.src), load(house.src), load(house.wall),
-      wall.src ? load(wall.src) : null,
+      load(land.src), load(house.src), load(house.shape), load(wall.src),
       load(garden.src), load(pet.src), annivP, logoP
     ]).then(function(r){
       if (seq !== drawSeq) return;
       ctx.clearRect(0, 0, W, H);
       ctx.drawImage(r[0], 0, 0, W, H);
-      if (upto >= 5 && PET_POS[pet.id].behind) drawPet(pet, r[5], r[1].height * HOUSE_SCALE);
-      if (upto >= 2){
-        var layer = houseLayer(upto >= 3 ? wall : {color:null}, r[1], upto >= 3 ? r[2] : null, r[3]);
-        var hw = layer.width * HOUSE_SCALE, hh = layer.height * HOUSE_SCALE;
-        ctx.drawImage(layer, (W - hw) / 2, GROUND - hh, hw, hh);
-      }
-      if (upto >= 4){
-        var gi = r[4], gw = 420, gh = gi.height * gw / gi.width;
-        ctx.drawImage(gi, 250 - gw / 2, GROUND + 10, gw, gh);
-      }
-      if (upto >= 5 && !PET_POS[pet.id].behind) drawPet(pet, r[5]);
+      if (upto >= 2) drawHouse(r[1], r[2], upto >= 3 ? r[3] : null);
+      if (upto >= 4) drawIn(r[4], BOX.garden);
+      if (upto >= 5) drawIn(r[5], BOX[PET_BOX[pet.id]]);
       if (withTitle){
-        var y = 110;
+        var y = Math.round(H * 0.055);
         if (r[6]){
-          var aw = 640, ah = r[6].height * aw / r[6].width;
+          var aw = W * 0.6, ah = r[6].height * aw / r[6].width;
           ctx.drawImage(r[6], (W - aw) / 2, y, aw, ah);
-          y += ah + 34;
+          y += ah + 30;
         }
         if (r[7]){
-          var lw = 800, lh = r[7].height * lw / r[7].width;
+          var lw = W * 0.78, lh = r[7].height * lw / r[7].width;
           ctx.save();
           ctx.shadowColor = "rgba(14,20,48,.75)";   // white logo needs a shadow on light skies
           ctx.shadowBlur = 18;
@@ -605,7 +594,7 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
       if (s.key === "wall"){
         var sw = document.createElement("span");
         sw.className = "sw";
-        if (o.color) sw.style.background = o.color; else sw.style.backgroundImage = "url(" + o.src + ")";
+        sw.style.backgroundImage = "url(" + o.src + ")";
         b.appendChild(sw);
       } else {
         var im = document.createElement("img");
