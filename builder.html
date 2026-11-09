@@ -216,7 +216,8 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
 .panel p.note{color:var(--muted-dark);font-size:calc(.75rem + 2px);margin-top:8px}
 .panel h2{font-weight:400;font-size:calc(.8rem + 2px);letter-spacing:.12em;margin:0 0 4px;color:#7A5B12}
 .panel p{margin:0}
-#s-hint{padding-top:6vh;gap:18px}
+#s-hint,#s-notice{padding-top:6vh;gap:18px}
+#btn-restart{background:var(--paper);font-size:calc(.8rem + 2px)}
 
 /* done */
 .done-title{font-size:calc(1.53rem + 2px);color:var(--pick);margin:0;text-shadow:3px 3px 0 var(--edge)}
@@ -285,8 +286,13 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
   <section class="screen" id="s-hint" hidden>
     <p class="hint-title">つぎの問題はどこ?</p>
     <div class="panel"><h2>ヒント</h2><p id="hint"></p>
-      <p class="note">本番では、ここで次の場所のQRコードを探して読みとります。</p></div>
-    <button class="plain-btn" id="btn-scan">QRを読みとったことにする</button>
+      <p class="note">見つけたら、スマホの<b>カメラ</b>でQRコードを読みとってね。<br>（LINEなどのアプリで読むと、続きから遊べないよ）</p></div>
+  </section>
+
+  <section class="screen" id="s-notice" hidden>
+    <p class="hint-title" id="notice-title"></p>
+    <div class="panel"><p id="notice-text"></p><p class="note" id="notice-hint"></p></div>
+    <button class="plain-btn" id="btn-restart" hidden>最初からやりなおす</button>
   </section>
 
   <section class="screen" id="s-done" hidden>
@@ -294,7 +300,7 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
       <p class="done-title">おうち完成!</p>
       <img class="final" id="final" alt="完成したおうちの画像">
       <p class="note">画像を長押しして保存してみてください。<br>本番では保存ボタンをつけます。</p>
-      <button class="plain-btn" id="btn-again">もういちど遊ぶ</button>
+      <button class="plain-btn" id="btn-again">最初から遊ぶ</button>
     </div>
   </section>
 
@@ -445,10 +451,31 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
 
   var state, pick;
   function reset(){
-    state = { q:0 };
+    state = { q:0, done:0 };         // done = how many questions are cleared (parts chosen)
     pick = { land:"sea", house:"2f", wall:"tile", garden:"lawn", pet:"dog" };
   }
   reset();
+
+  // ---------- progress is kept on the phone, so each QR code continues the same house
+  var SAVE_KEY = "house-quiz-rally";
+  function saveProgress(){
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ done: state.done, pick: pick })); } catch (e){}
+  }
+  function loadProgress(){
+    try {
+      var d = JSON.parse(localStorage.getItem(SAVE_KEY) || "null");
+      if (d && typeof d.done === "number"){
+        state.done = Math.max(0, Math.min(5, d.done));
+        for (var k in pick) if (d.pick && d.pick[k]) pick[k] = d.pick[k];
+      }
+    } catch (e){}
+  }
+  function clearProgress(){
+    try { localStorage.removeItem(SAVE_KEY); } catch (e){}
+  }
+
+  // what each QR code opens (the part after # in its link). The start code also leads to QUIZ 1.
+  var QR = { "go-7kx2":0, "q2-m4p9":1, "q3-t8w3":2, "q4-c5n7":3, "q5-h2v6":4 };
 
   function opt(key){
     var s = STEPS.filter(function(x){ return x.key === key; })[0];
@@ -456,7 +483,7 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
   }
 
   // ---------- screens
-  var screens = ["start","quiz","wrong","correct","part","hint","done"];
+  var screens = ["start","quiz","wrong","correct","part","hint","notice","done"];
   function show(name){
     screens.forEach(function(n){ document.getElementById("s-" + n).hidden = (n !== name); });
     document.body.classList.toggle("white", name === "part");
@@ -507,6 +534,7 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
       t.textContent = Q.c[i];
       b.appendChild(k); b.appendChild(t);
       b.addEventListener("click", function(){
+        startMusic();                  // a page opened from a QR code has had no tap yet
         if (i === Q.a){
           document.getElementById("explain").textContent = Q.ex;
           show("correct");
@@ -747,19 +775,51 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
   document.getElementById("btn-to-part").addEventListener("click", showPart);
   document.getElementById("btn-part-next").addEventListener("click", function(){
     if (anim){ cancelAnimationFrame(anim); anim = null; rot = Math.round(rot); layoutRing(); }
+    state.done = Math.max(state.done, state.q + 1);
+    saveProgress();
     if (state.q === QUIZ.length - 1){ finish(); return; }
     document.getElementById("hint").textContent = QUIZ[state.q].hint;
     show("hint");
   });
-  document.getElementById("btn-scan").addEventListener("click", function(){
-    state.q += 1;
-    showQuiz();
-  });
-  document.getElementById("btn-again").addEventListener("click", function(){
+  function startOver(){
+    clearProgress();
     reset();
     show("start");
-  });
+  }
+  document.getElementById("btn-again").addEventListener("click", startOver);
+  document.getElementById("btn-restart").addEventListener("click", startOver);
 
-  show("start");
+  function notice(title, text, hint, canRestart){
+    document.getElementById("notice-title").textContent = title;
+    document.getElementById("notice-text").textContent = text;
+    document.getElementById("notice-hint").textContent = hint ? "ヒント：" + hint : "";
+    document.getElementById("btn-restart").hidden = !canRestart;
+    show("notice");
+  }
+  function nextHint(){ return state.done >= 1 ? QUIZ[state.done - 1].hint : ""; }
+
+  // open the screen that matches the scanned QR code and the progress saved on this phone
+  function route(){
+    loadProgress();
+    var code = location.hash.replace(/^#/, "");
+    var q = QR.hasOwnProperty(code) ? QR[code] : 0;     // no code (plain link) = the start code
+    if (state.done >= 5){ finish(); return; }
+    if (q === 0){
+      if (state.done === 0) show("start");
+      else notice("つづきから遊ぼう!", "つぎは QUIZ " + (state.done + 1) + " のQRコードを探してね。", nextHint(), true);
+      return;
+    }
+    if (q === state.done){ state.q = q; showQuiz(); return; }
+    if (q > state.done){
+      notice("まだ答えられないよ",
+        state.done === 0 ? "まずは、スタートのQRコードから始めてね。"
+                         : "先に QUIZ " + (state.done + 1) + " のQRコードを探してね。",
+        nextHint(), false);
+      return;
+    }
+    notice("この問題はクリアずみ!", "つぎは QUIZ " + (state.done + 1) + " のQRコードを探してね。", nextHint(), false);
+  }
+  window.addEventListener("hashchange", route);
+  route();
 })();
 </script>
