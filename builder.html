@@ -468,6 +468,13 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
     else if (document.getElementById("s-wrong").hidden) playMusic();
   });
 
+  // Music tries to start as soon as the page opens. Phones (and most browsers) refuse sound until
+  // the first touch, so it also starts on the very first tap anywhere, not only on LET'S GO.
+  startMusic();
+  ["pointerup", "touchend", "click", "keydown"].forEach(function(ev){
+    document.addEventListener(ev, function(){ if (!musicPaused) playMusic(); }, { capture:true, passive:true });
+  });
+
   var state, pick;
   function reset(){
     state = { q:0, done:0 };         // done = how many questions are cleared (parts chosen)
