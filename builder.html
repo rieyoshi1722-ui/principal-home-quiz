@@ -217,6 +217,16 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
 .panel h2{font-weight:400;font-size:calc(.8rem + 2px);letter-spacing:.12em;margin:0 0 4px;color:#7A5B12}
 .panel p{margin:0}
 #s-hint,#s-notice{padding-top:6vh;gap:18px}
+/* ハズレ (a decoy QR code): big word, small nudge, no effect on progress */
+.miss{min-height:calc(100svh - 40px);gap:14px}
+.miss .grow{flex:1}
+.miss-title{margin:0;font-size:calc(3.2rem + 2px);color:var(--ink);line-height:1.1;letter-spacing:.06em;
+  text-shadow:3px 0 0 var(--edge),-3px 0 0 var(--edge),0 3px 0 var(--edge),0 -3px 0 var(--edge),3px 3px 0 var(--edge),-3px 3px 0 var(--edge),3px -3px 0 var(--edge),-3px -3px 0 var(--edge),5px 6px 0 var(--edge)}
+.miss-icon{width:30%;height:auto}
+.miss-text{margin:0;font-size:calc(1rem + 2px);color:var(--ink);
+  text-shadow:2px 0 0 var(--edge),-2px 0 0 var(--edge),0 2px 0 var(--edge),0 -2px 0 var(--edge)}
+.miss-hint{margin:6px 0 0;width:88%;text-align:center;font-size:calc(.85rem + 2px);line-height:1.7;
+  background:color-mix(in srgb, var(--paper) 90%, transparent);color:var(--dark);border:3px solid var(--edge);border-radius:14px;padding:10px 12px}
 #btn-restart{background:var(--paper);font-size:calc(.8rem + 2px)}
 
 /* done */
@@ -293,6 +303,15 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
     <p class="hint-title" id="notice-title"></p>
     <div class="panel"><p id="notice-text"></p><p class="note" id="notice-hint"></p></div>
     <button class="plain-btn" id="btn-restart" hidden>最初からやりなおす</button>
+  </section>
+
+  <section class="screen miss" id="s-miss" hidden>
+    <div class="grow"></div>
+    <p class="miss-title">ハズレ!</p>
+    <img class="miss-icon" src="assets/ui/res_wrong_icon.png" alt="">
+    <p class="miss-text">ちがうところを探してね</p>
+    <p class="miss-hint" id="miss-hint" hidden></p>
+    <div class="grow"></div>
   </section>
 
   <section class="screen" id="s-done" hidden>
@@ -476,6 +495,7 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
 
   // what each QR code opens (the part after # in its link). The start code also leads to QUIZ 1.
   var QR = { "go-7kx2":0, "q2-m4p9":1, "q3-t8w3":2, "q4-c5n7":3, "q5-h2v6":4 };
+  var MISS = { "x1-r9d3":1 };     // ハズレ codes: they never change the saved progress
 
   function opt(key){
     var s = STEPS.filter(function(x){ return x.key === key; })[0];
@@ -483,7 +503,7 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
   }
 
   // ---------- screens
-  var screens = ["start","quiz","wrong","correct","part","hint","notice","done"];
+  var screens = ["start","quiz","wrong","correct","part","hint","notice","miss","done"];
   function show(name){
     screens.forEach(function(n){ document.getElementById("s-" + n).hidden = (n !== name); });
     document.body.classList.toggle("white", name === "part");
@@ -802,6 +822,13 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
   function route(){
     loadProgress();
     var code = location.hash.replace(/^#/, "");
+    if (MISS.hasOwnProperty(code)){
+      var mh = document.getElementById("miss-hint");
+      mh.hidden = !(state.done >= 1 && state.done < 5);
+      if (!mh.hidden) mh.textContent = "つぎは QUIZ " + (state.done + 1) + "。ヒント：" + nextHint();
+      show("miss");
+      return;
+    }
     var q = QR.hasOwnProperty(code) ? QR[code] : 0;     // no code (plain link) = the start code
     if (state.done >= 5){ finish(); return; }
     if (q === 0){
