@@ -386,9 +386,9 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
       { id:"castle", name:"お城", src:P+"house_castle.webp", shape:P+"house_castle_shape.png" }
     ]},
     { key:"wall", label:"label_wall", opts:[
-      { id:"tile", name:"白いタイル", src:P+"wall_tile.jpg" },
-      { id:"galva", name:"ガルバリウム", src:P+"wall_galva.jpg", tile:.8 },
-      { id:"log", name:"ログハウス風", src:P+"wall_log.jpg" },
+      { id:"tile", name:"白いタイル", src:P+"wall_tile.jpg", tile:2 },     // 2x2 mirrored, seamless
+      { id:"galva", name:"ガルバリウム", src:P+"wall_galva.jpg", tile:1.6 },
+      { id:"log", name:"ログハウス風", src:P+"wall_log.jpg", tile:2 },
       { id:"candy", name:"お菓子の家風", src:P+"wall_candy.jpg" },
       { id:"gold", name:"金ぱく", src:P+"wall_gold.jpg" }
     ]},
@@ -622,9 +622,9 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
     f.width = Math.ceil(r.w); f.height = Math.ceil(r.h);
     var fx = f.getContext("2d");
     if (tImg){
-      var t = WALL_TILE * (tile || 1);
-      for (var yy = 0; yy < f.height; yy += t)
-        for (var xx = 0; xx < f.width; xx += t) fx.drawImage(tImg, xx, yy, t, t);
+      var tw = WALL_TILE * (tile || 1), th = tw * tImg.height / tImg.width;   // tiles keep their shape
+      for (var yy = 0; yy < f.height; yy += th)
+        for (var xx = 0; xx < f.width; xx += tw) fx.drawImage(tImg, xx, yy, tw, th);
     } else {
       fx.fillStyle = BARE_WALL;
       fx.fillRect(0, 0, f.width, f.height);
