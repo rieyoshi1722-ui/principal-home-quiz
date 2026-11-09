@@ -550,7 +550,13 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
     document.getElementById("q-text").textContent = Q.q;
     var list = document.getElementById("q-choices");
     list.innerHTML = "";
-    ["A","B","C"].forEach(function(L, i){
+    // shuffle which answer sits on A, B and C each time the question opens
+    var order = [0, 1, 2];
+    for (var j = order.length - 1; j > 0; j--){
+      var r = Math.floor(Math.random() * (j + 1)), tmp = order[j]; order[j] = order[r]; order[r] = tmp;
+    }
+    ["A","B","C"].forEach(function(L, slot){
+      var i = order[slot];             // index of the answer shown in this slot
       var b = document.createElement("button");
       b.className = "abc";
       b.id = "ans-" + L;
