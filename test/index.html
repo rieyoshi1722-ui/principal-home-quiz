@@ -145,6 +145,8 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
 }
 .box h2{font-weight:400;font-size:calc(.8rem + 2px);letter-spacing:.12em;margin:0 0 4px;color:#7A5B12}
 .box p{margin:0}
+.box p.parent{margin-top:8px;padding-top:7px;border-top:1px dashed #C9BFA9;font-size:calc(.8rem + 2px);line-height:1.6;color:#5C5244}
+.parent span:first-child{display:block;font-size:calc(.7rem + 2px);letter-spacing:.1em;color:#7A5B12}
 .nav-img{height:41px;width:auto}
 @media (prefers-reduced-motion:no-preference){
   .pop{animation:pop .65s cubic-bezier(.3,1.5,.5,1) both}
@@ -279,6 +281,8 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
     <div class="grow"></div>
     <img class="res-text wrong" id="wrong-text" src="assets/ui/res_wrong_text.png" alt="不正解">
     <img class="res-icon wrong" src="assets/ui/res_wrong_icon.png" alt="">
+    <div class="box"><h2>かいせつ</h2><p id="w-explain"></p>
+      <p class="parent"><span>おうちの方へ</span><span id="w-parent"></span></p></div>
     <div class="grow"></div>
     <button class="img-btn low" id="btn-wrong-back"><img class="nav-img" src="assets/ui/btn_back.png" alt="もどる"></button>
   </section>
@@ -287,7 +291,8 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
     <div class="grow"></div>
     <img class="res-text" id="correct-text" src="assets/ui/res_correct_text.png" alt="正解!">
     <img class="res-icon" src="assets/ui/res_correct_icon.png" alt="">
-    <div class="box"><h2>かいせつ</h2><p id="explain"></p></div>
+    <div class="box"><h2>かいせつ</h2><p id="c-explain"></p>
+      <p class="parent"><span>おうちの方へ</span><span id="c-parent"></span></p></div>
     <div class="grow"></div>
     <button class="img-btn low" id="btn-to-part"><img class="nav-img" src="assets/ui/btn_next.png" alt="つぎへ"></button>
   </section>
@@ -347,68 +352,80 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
   var W = 1290, H = 2785;
   var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // 問題集（出題案 PDF の 1-1 … 5-3）。テーマごとに3問。
+  // 問題集（ランダム出題版 出題案 PDF の Q1-1 … Q5-3）。Q1〜Q5の種別と順番は固定、
+  // 1回のプレイでは各種別の3問から1問をランダムに出す。parent は「おうちの方へ」（保護者向けの一言）。
   var BANK = [
-    [ // 1. 土地探し
+    [ // Q1 会社のこと
+      { q:"プリンシパルホームは、今年で何周年?",
+        c:["2周年", "12周年", "22周年"], a:2,
+        ex:"今年で22周年！町田と横浜で、たくさんの家を建てたり、直したりしてきたよ。",
+        parent:"新築からリフォーム、建てたあとのお手入れまで、長くお付き合いします。" },
+      { q:"プリンシパルホームのお店（拠点）があるのは、どこ?",
+        c:["札幌と福岡", "町田と横浜", "大阪と名古屋"], a:1,
+        ex:"町田と横浜にお店があるよ。近くにあるから、家が建ったあとも、すぐにかけつけられるんだ。",
+        parent:"町田・横浜エリアの土地事情に詳しい地元の工務店です。家づくりもリフォームも、お近くの拠点でご相談いただけます。" },
+      { q:"プリンシパルホームは、日本のほかに、どこの国でも家を建てている?",
+        c:["アメリカ（シカゴ）", "南極", "月"], a:0,
+        ex:"アメリカのシカゴにも支社があって、家を建てているよ。外国でも家づくりをしている会社なんだ。",
+        parent:"海外でも通用する設計力・施工力で、皆さまの注文住宅とリフォームをお手伝いします。" }
+    ],
+    [ // Q2 土地探し
       { q:"土地の広さの「1坪（つぼ）」は、たたみ何まい分くらい?",
-        c:["1まい","2まい","4まい"], a:1,
-        ex:"1坪は、たたみ約2まい分（約3.3平方メートル）。土地の広告は坪で書かれていることが多いよ。" },
-      { q:"土地えらびで「ハザードマップ」を見るとわかることは?",
-        c:["近くのお店の場所","大雨や地震のときに危ない場所","日当たりのよさ"], a:1,
-        ex:"洪水や土砂くずれが起きやすい場所がわかるよ。市町村のホームページで見られるんだ。" },
-      { q:"家を建てる土地は、道路に何メートル以上接している必要がある?",
-        c:["50センチ","2メートル","10メートル"], a:1,
-        ex:"法律で「道路に2メートル以上接すること」と決まっているよ。安い土地には、この条件を満たしていないものもあるんだ。" }
+        c:["1まい", "2まい", "4まい"], a:1,
+        ex:"1坪は、たたみ約2まい分（約3.3平方メートル）。土地の広告は坪で書かれていることが多いよ。",
+        parent:"土地探しからお手伝いします。土地と建物をあわせた総額で、無理のない資金計画をご提案します。" },
+      { q:"土地いっぱいに、家を建ててもいい?",
+        c:["いい。好きなだけ大きくできる", "だめ。建てられる大きさに決まりがある", "いい。でも2階はだめ"], a:1,
+        ex:"「建ぺい率（けんぺいりつ）」という決まりで、土地の何割まで家を建てられるかが決まっているんだ。",
+        parent:"同じ広さの土地でも、建てられる家の大きさは変わります。ご購入前に、どんな家が建つかプランでお確かめください。" },
+      { q:"古い家がついた土地を買ったら、どうすれば住める?",
+        c:["建て替える", "リフォームする", "どちらでもできる"], a:2,
+        ex:"こわして新しく建てることも、直して住むこともできるよ。家の状態を見て、えらぶんだ。",
+        parent:"「古家付き土地」は、建て替えとリフォームのどちらがお得か比べて選べます。両方を手がける当社なら、まとめてご提案できます。" }
     ],
-    [ // 2. 外観
-      { q:"「平屋（ひらや）」って、どんな家?",
-        c:["屋上がある家","地下室がある家","1階だけの家"], a:2,
-        ex:"階段がないので、小さな子どもがいても、年をとっても、くらしやすいと人気なんだ。" },
-      { q:"片側だけがななめの「片流れ屋根」が、太陽光パネルに向いている理由は?",
-        c:["大きな面を南に向けやすいから","雨が降らないから","屋根が軽いから"], a:0,
-        ex:"屋根の面が1つで大きいので、南向きにすれば、パネルをたくさんのせられるよ。このゲームの2階建ての屋根もこの形。" },
-      { q:"3階建ての家のよいところは?",
-        c:["せまい土地でも部屋を広くとれる","階段がいらない","地震がこない"], a:0,
-        ex:"上に積み重ねるので、せまい土地でも床の面積を広くとれるよ。駅に近い街中で多い形なんだ。" }
-    ],
-    [ // 3. 外壁
-      { q:"外壁に使われる「ガルバリウム鋼板」は、何でできている?",
-        c:["木","金属","ガラス"], a:1,
-        ex:"鉄の板に、アルミと亜鉛でめっきをした金属の板。さびにくくて軽く、すっきりした見た目が人気だよ。" },
-      { q:"日本の一戸建ての外壁で、いちばん多く使われている素材は?",
-        c:["サイディング（板状の外壁材）","しっくい","レンガ"], a:0,
-        ex:"セメントなどを板の形にした素材。色やもようの種類が多く、えらぶ楽しさもあるよ。" },
+    [ // Q3 外壁
       { q:"外壁の点検や塗りかえを考えるのは、何年くらいがひとつの目安?",
-        c:["1〜2年","10〜15年","50年"], a:1,
-        ex:"素材によってちがうけど、10〜15年くらいがひとつの目安。えらぶときに、お手入れの年数も聞いておくと安心だよ。" }
+        c:["1〜2年", "10〜15年", "50年"], a:1,
+        ex:"素材によってちがうけど、10〜15年くらいがひとつの目安。えらぶときに、お手入れの年数も聞いておくと安心だよ。",
+        parent:"築10年を過ぎたら外壁・屋根の点検を。外まわりのリフォームのご相談を承ります。" },
+      { q:"外壁をさわったら、手に白い粉がついた。これは何のサイン?",
+        c:["塗りかえの時期が近いサイン", "雪がふるサイン", "新品のサイン"], a:0,
+        ex:"「チョーキング」といって、外壁の塗料が古くなってきた合図なんだ。おうちに帰ったら、さわってみよう。",
+        parent:"白い粉は塗膜が劣化してきたサインです。お住まいの外壁チェックと塗り替えのご相談を承ります。" },
+      { q:"外壁にひびわれを見つけたら、どうする?",
+        c:["そのままにしておく", "テープをはっておく", "早めにプロに見てもらう"], a:2,
+        ex:"ひびから雨水が入ると、かべの中の木がいたんでしまうことがあるんだ。小さいうちに直すのが大切だよ。",
+        parent:"小さなひび割れも、早めの補修で大きな工事を防げます。点検だけのご相談もお気軽にどうぞ。" }
     ],
-    [ // 4. 外構（エクステリア）
-      { q:"門・へい・駐車場などの「外構工事」の費用は、ふつうどうなっている?",
-        c:["家の値段にいつもふくまれている","家とは別にかかることが多い","お金はかからない"], a:1,
-        ex:"家の見積もりとは別になっていることが多いよ。資金計画を立てるときに、いっしょに考えておくと安心なんだ。" },
-      { q:"庭の水やりや車のそうじに使う、外にある水道を何という?",
-        c:["立水栓（りっすいせん）","消火栓","給湯器"], a:0,
-        ex:"庭のどこにつけるかで、使いやすさが変わるよ。花だんや駐車場の近くが便利なんだ。" },
-      { q:"上を歩くと「ジャリジャリ」と大きな音がして、防犯に役立つ石は?",
-        c:["防犯砂利","しき石","置き石"], a:0,
-        ex:"音が出るので、あやしい人が近づきにくくなるよ。家の裏や窓の下にしくと効果的なんだ。" }
+    [ // Q4 会社のこと
+      { q:"プリンシパルホームは、世界の何カ国の賞をもらっている?",
+        c:["2カ国", "5カ国", "8カ国"], a:2,
+        ex:"世界8カ国のデザインの賞をもらっているよ。プロにみとめられたデザインなんだ。",
+        parent:"受賞歴のあるデザイン力で、注文住宅もリフォームもご提案します。" },
+      { q:"プリンシパルホームがしている仕事は、どれ?",
+        c:["新しい家を建てることだけ", "家を直すことだけ", "建てることも、直すことも"], a:2,
+        ex:"新しい家を建てる「注文住宅」も、今の家を直す「リフォーム」も、どちらもしているよ。",
+        parent:"新築もリフォームもひとつの窓口でご相談いただけます。建て替えか、リフォームかでお迷いの方もどうぞ。" },
+      { q:"プリンシパルホームがつくる「注文住宅」って、どんな家?",
+        c:["できあがった家を買う", "家族の希望に合わせて、一から設計する家", "お店で売っている小さな家"], a:1,
+        ex:"家族のくらし方や好きなものに合わせて、間取りもデザインも一から考えてつくる家なんだ。",
+        parent:"ご家族の「こうしたい」を形にする注文住宅。ご希望の整理からお手伝いします。" }
     ],
-    [ // 5. 家で飼う動物
-      { q:"犬と室内でくらす家の床で、気をつけたいことは?",
-        c:["すべりにくい床にする","つるつるの床にする","段差をふやす"], a:0,
-        ex:"すべりやすい床は、犬の足やこしに負担がかかるんだ。ペット用のすべりにくい床材もあるよ。" },
-      { q:"犬のおさんぽ帰りに便利な、玄関の近くにつける設備は?",
-        c:["足あらい場（シャワーつき水道）","だんろ","ロフト"], a:0,
-        ex:"家に入る前に足をあらえるので、家の中をよごさずにすむよ。" },
+    [ // Q5 いきもの
       { q:"ねこと暮らす家で人気の「キャットウォーク」って、なに?",
-        c:["かべの高いところにつくる、ねこの通り道","ねこ用のくつ","ねこのごはん皿"], a:0,
-        ex:"ねこは高いところが大好き。かべにたなを取りつけるだけで、ねこが楽しく運動できるよ。" }
+        c:["かべの高いところにつくる、ねこの通り道", "ねこ用のくつ", "ねこのごはん皿"], a:0,
+        ex:"ねこは高いところが大好き。かべにたなを取りつけるだけで、ねこが楽しく運動できるよ。",
+        parent:"壁に棚を付けるだけの小さなリフォームから対応します。" },
+      { q:"犬やねこが、ドアを開けなくても部屋を行き来できる、しかけは?",
+        c:["回転ドア", "ペットドア", "自動ドア"], a:1,
+        ex:"ドアの下に、ペットが通れる小さな出入り口をつけるんだ。ドアを開けっぱなしにしなくてすむよ。",
+        parent:"今のドアにペットドアを付けるリフォームも可能です。新築なら、ペットの通り道から設計します。" },
+      { q:"犬やねこと暮らす家の、かべの下のほうにおすすめなのは?",
+        c:["ひっかきキズに強いかべ", "紙でできたかべ", "ガラスのかべ"], a:0,
+        ex:"ペットがかべをひっかいても、キズがつきにくい丈夫なかべ材があるんだ。",
+        parent:"傷に強い壁材や腰壁への張り替えなど、ペットに合わせた内装リフォームを承ります。" }
     ]
   ];
-  // ルート: 何周目かで出す問題を変える（数字は各テーマの何問目か、0 = 1問目）。
-  // A = 1-3 / 2-2 / 3-3 / 4-2 / 5-1、B = 1-2 / 2-1 / 3-1 / 4-1 / 5-2、C = 1-1 / 2-3 / 3-2 / 4-3 / 5-3
-  var ROUTES = [ [2, 1, 2, 1, 0], [1, 0, 0, 0, 1], [0, 2, 1, 2, 2] ];
-  var ROUTE_NAMES = ["A", "B", "C"];
   // ヒントは次のQRを貼る場所なので、どのルートでも同じ（まだ仮）
   var HINTS = [
     "（仮）受付の近く、大きな観葉植物のまわりを探してみよう!",
@@ -539,8 +556,16 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
   });
 
   var state, pick;
+  // one question per kind for this play; a replay avoids the question it had last time
+  function pickQuestions(prev){
+    return BANK.map(function(kind, n){
+      var choices = kind.map(function(_, i){ return i; }).filter(function(i){ return !prev || i !== prev[n]; });
+      return choices[Math.floor(Math.random() * choices.length)];
+    });
+  }
   function reset(){
-    state = { q:0, done:0, round:state ? state.round : 0 };   // done = questions cleared; round = play-through (0 = 1周目)
+    var prev = state ? state.sel : null;
+    state = { q:0, done:0, sel:pickQuestions(prev) };   // done = questions cleared; sel = which question of each kind
     pick = { land:"sea", house:"2f", wall:"tile", garden:"lawn", pet:"dog" };
   }
   reset();
@@ -548,7 +573,7 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
   // ---------- progress is kept on the phone, so each QR code continues the same house
   var SAVE_KEY = "house-quiz-rally";
   function saveProgress(){
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ done: state.done, pick: pick, round: state.round })); } catch (e){}
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify({ done: state.done, pick: pick, sel: state.sel })); } catch (e){}
   }
   function loadProgress(){
     try {
@@ -556,12 +581,11 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
       if (d && typeof d.done === "number"){
         state.done = Math.max(0, Math.min(5, d.done));
         for (var k in pick) if (d.pick && d.pick[k]) pick[k] = d.pick[k];
-        if (typeof d.round === "number") state.round = d.round;
+        if (d.sel && d.sel.length === BANK.length) state.sel = d.sel;
       }
     } catch (e){}
   }
-  function quiz(n){ return BANK[n][ROUTES[state.round % ROUTES.length][n]]; }
-  function routeLabel(){ return (state.round + 1) + "周目（" + ROUTE_NAMES[state.round % ROUTES.length] + "ルート）"; }
+  function quiz(n){ return BANK[n][state.sel[n]]; }
 
   // what each QR code opens (the part after # in its link). The start code also leads to QUIZ 1.
   var QR = { "go-7kx2":0, "q2-m4p9":1, "q3-t8w3":2, "q4-c5n7":3, "q5-h2v6":4 };
@@ -605,6 +629,11 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
     el.classList.add("pop");
   }
 
+  function fillExplain(prefix, Q){
+    document.getElementById(prefix + "-explain").textContent = Q.ex;
+    document.getElementById(prefix + "-parent").textContent = Q.parent;
+  }
+
   function showQuiz(){
     var Q = quiz(state.q);
     var no = document.getElementById("q-no");
@@ -631,8 +660,9 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
       b.appendChild(k); b.appendChild(t);
       b.addEventListener("click", function(){
         startMusic();                  // a page opened from a QR code has had no tap yet
+        fillExplain("c", Q);
+        fillExplain("w", Q);
         if (i === Q.a){
-          document.getElementById("explain").textContent = Q.ex;
           show("correct");
           replayPop(document.getElementById("correct-text"));
         } else {
@@ -865,6 +895,7 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
   // ---------- buttons
   document.getElementById("btn-start").addEventListener("click", function(){
     startMusic();
+    saveProgress();                    // keep this play's questions even if QUIZ 1 is reopened
     showQuiz();
   });
   document.getElementById("btn-wrong-back").addEventListener("click", function(){ show("quiz"); });
@@ -877,20 +908,15 @@ body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cove
     document.getElementById("hint").textContent = HINTS[state.q];
     show("hint");
   });
-  // next = true after finishing a round: the next play-through gets the next route (A → B → C → A …)
-  function startOver(next){
-    var finished = state.done >= QUIZ_COUNT;
+  // a new play draws new questions (avoiding last time's)
+  function startOver(){
     reset();
-    if (next === true && finished) state.round += 1;
     saveProgress();
     showStart();
   }
-  function showStart(){
-    document.getElementById("trial-tag").textContent = "お試し版　" + routeLabel();
-    show("start");
-  }
-  document.getElementById("btn-again").addEventListener("click", function(){ startOver(true); });
-  document.getElementById("btn-restart").addEventListener("click", function(){ startOver(false); });
+  function showStart(){ show("start"); }
+  document.getElementById("btn-again").addEventListener("click", startOver);
+  document.getElementById("btn-restart").addEventListener("click", startOver);
 
   function notice(title, text, hint, canRestart){
     document.getElementById("notice-title").textContent = title;
