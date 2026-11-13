@@ -467,12 +467,12 @@ body.bar{--pgh:calc(var(--pgw) * 48 / 424 + 20px)}
     ]
   ];
   // ヒントは次のQRを貼る場所なので、どのルートでも同じ（まだ仮）
-  var HINTS = [
-    "（仮）受付の近く、大きな観葉植物のまわりを探してみよう!",
-    "（仮）おいしいにおいがする場所。キッチンコーナーを見てみよう!",
-    "（仮）外が見える大きな窓のそば。カーテンのうらに注目!",
-    "（仮）子どもが遊べるキッズスペース。おもちゃ箱のあたりかも?",
-    ""
+  var HINTS = [          // shown after clearing question n: where the QR code of question n+1 is
+    "高〜〜い看板",                          // → QUIZ 2
+    "玄関前の入り口あたりかな？",             // → QUIZ 3
+    "デザイン賞の額がいっぱいあるなぁ",        // → QUIZ 4
+    "ショールームの奥の方を探そう！",          // → QUIZ 5
+    ""                                    // after QUIZ 5 the house is finished: no hint
   ];
   var QUIZ_COUNT = 5;
 
