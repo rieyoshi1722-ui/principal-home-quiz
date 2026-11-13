@@ -107,7 +107,7 @@ body.bar{--pgh:calc(var(--pgw) * 48 / 424 + 20px)}
   word-break:keep-all;overflow-wrap:anywhere;   /* break only at the marked phrase ends */
 }
 .start-btn{
-  width:63%;margin-top:2vh;
+  width:63%;margin-top:calc(2vh + 5px);             /* 5px more air under the white panel */
   aspect-ratio:1390/348;
   background:url(assets/ui/btn_yellow.png) center / 100% 100% no-repeat;
   border:0;cursor:pointer;
@@ -163,7 +163,7 @@ body.bar{--pgh:calc(var(--pgw) * 48 / 424 + 20px)}
   .start-logo{width:58%}
   .start-title{width:64%;margin-top:6px}
   .start-lead{margin-top:6px;padding:8px 12px;font-size:calc(.88rem + 2px);line-height:1.6}
-  .start-btn{margin-top:4px}
+  .start-btn{margin-top:9px}
   .result{gap:8px}
   .res-text,.res-text.wrong{width:auto;height:12svh}
   .res-icon,.res-icon.wrong{width:auto;height:12svh}
