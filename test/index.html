@@ -62,20 +62,21 @@ body.white{background:var(--paper);color:var(--dark)}
 body.sky{background:var(--sky) url(assets/ui/bg_sky.png) center top / cover fixed;image-rendering:pixelated}
 body.gloom{background:var(--gloom) url(assets/ui/bg_gloom.jpg) center top / cover fixed}
 .app{max-width:440px;margin:0 auto;padding-block:18px 32px}
-/* progress bar: the house moves along five segments, one per question; the bar is part of the screens
-   after the start screen, so their one-screen heights give its space back through --pgh */
-body{--pgw:min(calc((100vw - 32px) * .88), 340px);--pgh:0px}
-body.bar{--pgh:calc(var(--pgw) * 64 / 396 + 12px)}
+/* progress bar: a trail of dots with a big dot per question; the house walks along it as questions are
+   cleared. It sits on the game screens (not the start, part-picking or ハズレ screens), and the content
+   below it starts 8px lower; the one-screen heights give its space back through --pgh */
+body{--pgw:min(calc(100vw - 32px), 440px);--pgh:0px}
+body.bar{--pgh:calc(var(--pgw) * 48 / 424 + 20px)}
 .pg{
-  width:var(--pgw);aspect-ratio:396/64;margin:0 auto 12px;position:relative;
-  --edge:5;--cx:36;                    /* design px of a 396-wide bar: where the green ends / where the house stands */
+  width:var(--pgw);aspect-ratio:424/48;margin:0 auto 20px;position:relative;
+  --cx:25.9;                           /* design px of the 424-wide bar where the house stands */
 }
-.pg img{position:absolute;display:block;pointer-events:none}
-.pg .pg-back,.pg .pg-line,.pg .pg-fill{left:0;top:0;width:100%;height:100%}
-.pg .pg-clip{position:absolute;inset:0;clip-path:inset(0 calc(100% - var(--edge) / 396 * 100%) 0 0)}
-.pg .pg-house{top:0;width:calc(68 / 396 * 100%);left:calc((var(--cx) - 34.5) / 396 * 100%)}
+.pg-dots{position:absolute;left:0;top:0;width:100%;height:100%;display:block;overflow:visible}
+.pg-dots circle{fill:#FDD000}
+.pg-dots circle.ahead{fill:#FFFFFF;opacity:.6}      /* dots still to walk are pale (white), the walked ones are yellow */
+.pg .pg-house{position:absolute;display:block;pointer-events:none;top:0;width:calc(47 / 424 * 100%);left:calc((var(--cx) - 23.5) / 424 * 100%)}
 @media (prefers-reduced-motion:no-preference){
-  .pg .pg-clip{transition:clip-path .8s cubic-bezier(.4,0,.2,1)}
+  .pg-dots circle{transition:opacity .5s}
   .pg .pg-house{transition:left .8s cubic-bezier(.4,0,.2,1)}
   .pg.hop .pg-house{animation:hop .8s ease-out}
   @keyframes hop{0%,100%{transform:translateY(0)}35%{transform:translateY(-12%)}65%{transform:translateY(0)}80%{transform:translateY(-4%)}}
@@ -168,6 +169,13 @@ body.bar{--pgh:calc(var(--pgw) * 64 / 396 + 12px)}
 .parent span:first-child{display:block;font-size:calc(.7rem + 2px);letter-spacing:.1em;color:#7A5B12}
 .nav-img{height:41px;width:auto}
 @media (max-height:780px){
+  #s-start{gap:8px}
+  .start-head{margin-top:0;gap:6px}
+  .start-anniv{width:48%}
+  .start-logo{width:58%}
+  .start-title{width:64%;margin-top:6px}
+  .start-lead{margin-top:6px;padding:8px 12px;font-size:calc(.88rem + 2px);line-height:1.6}
+  .start-btn{margin-top:4px}
   .result{gap:8px}
   .res-text,.res-text.wrong{width:auto;height:12svh}
   .res-icon,.res-icon.wrong{width:auto;height:12svh}
@@ -287,10 +295,8 @@ body.bar{--pgh:calc(var(--pgw) * 64 / 396 + 12px)}
 <div class="app">
 
   <div class="pg" id="pg" hidden aria-label="しんこうバー">
-    <img class="pg-back" src="assets/ui/progress_back.png" alt="">
-    <div class="pg-clip"><img class="pg-fill" src="assets/ui/progress_fill.png" alt=""></div>
-    <img class="pg-line" src="assets/ui/progress_line.png" alt="">
-    <img class="pg-house" src="assets/ui/progress_house.png" alt="">
+    <svg class="pg-dots" id="pg-dots" viewBox="0 0 424 48" aria-hidden="true"></svg>
+    <img class="pg-house" src="assets/ui/dots_house.png" alt="">
   </div>
 
   <section class="screen" id="s-start">
@@ -301,7 +307,7 @@ body.bar{--pgh:calc(var(--pgw) * 64 / 396 + 12px)}
       <img class="start-title" src="assets/ui/title_house.png" alt="HOUSE QUIZ RALLY">
       <p class="start-sub">おうちづくりクイズラリー</p>
     </div>
-    <p class="panel start-lead">クイズに正解して、<wbr>家のパーツをゲット!<br>5問クリアで、<wbr>あなただけの<wbr>理想の家が完成。</p>
+    <p class="panel start-lead">クイズに正解して、<wbr>家のパーツをゲット!<br>1問正解するたびに、<wbr>つぎのQRコードの<wbr>場所のヒントが出るよ。<br>5問クリアで、<wbr>あなただけの<wbr>理想の家が完成。</p>
     <button class="start-btn" id="btn-start">LET'S GO!</button>
   </section>
 
@@ -647,13 +653,25 @@ body.bar{--pgh:calc(var(--pgw) * 64 / 396 + 12px)}
 
   // ---------- screens
   // ---------- progress bar: shown on the game screens (not on the start or ハズレ screens)
-  var PG_EDGE = [5, 85, 161, 237, 313, 391];            // where the green ends after 0…5 cleared questions
-  var PG_HOUSE = [36, 90, 157.5, 225, 292.5, 360];      // where the house stands (kept inside the bar)
+  // The trail has 25 dots 15.52 apart (design px of a 424-wide bar); every 5th is a big dot, one per question.
+  // The house stands on the start dot, then on the big dot of each question once it is cleared.
+  var PG_PAD = 22, PG_STEP = 15.52, PG_X0 = 3.9 + PG_PAD;
+  var PG_DOTS = [];
+  (function buildDots(){
+    var svg = document.getElementById("pg-dots");
+    for (var i = 0; i < 25; i++){
+      var c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      var x = PG_X0 + PG_STEP * i;
+      c.setAttribute("cx", x.toFixed(1)); c.setAttribute("cy", "35.1");
+      c.setAttribute("r", (i % 5 === 4) ? "7.2" : "3.7");        // big dot = a question
+      svg.appendChild(c); PG_DOTS.push({ el:c, x:x });
+    }
+  })();
   var pgShown = -1;
   function progressFor(name){
-    if (name === "start" || name === "miss") return null;
+    if (name === "start" || name === "miss" || name === "part") return null;
     if (name === "done") return 5;
-    if (name === "correct" || name === "part" || name === "hint") return Math.min(5, state.q + 1);
+    if (name === "correct" || name === "hint") return Math.min(5, state.q + 1);
     if (name === "quiz" || name === "wrong") return state.q;
     return Math.min(5, state.done);                      // notice screens
   }
@@ -662,8 +680,9 @@ body.bar{--pgh:calc(var(--pgw) * 64 / 396 + 12px)}
     document.body.classList.toggle("bar", n !== null);
     el.hidden = (n === null);
     if (n === null) return;
-    el.style.setProperty("--edge", PG_EDGE[n]);
-    el.style.setProperty("--cx", PG_HOUSE[n]);
+    var hx = PG_X0 + PG_STEP * (n === 0 ? 0 : n * 5 - 1);       // start dot, then the big dots (5th, 10th … 25th)
+    el.style.setProperty("--cx", hx.toFixed(1));
+    PG_DOTS.forEach(function(d){ d.el.classList.toggle("ahead", d.x > hx + 1); });   // dots still to walk are paler
     el.setAttribute("aria-label", "しんこうバー　5もん中 " + n + "もん クリア");
     if (pgShown >= 0 && n !== pgShown){ el.classList.remove("hop"); void el.offsetWidth; el.classList.add("hop"); }
     pgShown = n;
