@@ -5,14 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <style>
-/* base reset (the artifact viewer adds these around the page) */
+/* base reset */
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{margin:0}
 img{max-width:100%}
 [hidden]{display:none!important}
 </style>
-<title>おうちづくり お試し</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<title>HOUSE QUIZ RALLY｜プリンシパルホーム 22周年</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&family=Yusei+Magic&display=swap" rel="stylesheet">
@@ -82,12 +81,6 @@ body.bar{--pgh:calc(var(--pgw) * 48 / 424 + 20px)}
   @keyframes hop{0%,100%{transform:translateY(0)}35%{transform:translateY(-12%)}65%{transform:translateY(0)}80%{transform:translateY(-4%)}}
 }
 .screen{display:flex;flex-direction:column;align-items:center;gap:14px}
-.trial-tag{
-  align-self:flex-start;
-  font-size:calc(.75rem + 2px);letter-spacing:.1em;
-  background:var(--edge);color:var(--pick);
-  padding:3px 8px;margin:0;
-}
 .plate{                       /* dark backing so white text reads over the forest */
   width:100%;
   background:color-mix(in srgb, var(--edge) 78%, transparent);
@@ -117,6 +110,12 @@ body.bar{--pgh:calc(var(--pgw) * 48 / 424 + 20px)}
   margin:2vh 0 0;
   text-align:center;
   word-break:keep-all;overflow-wrap:anywhere;   /* break only at the marked phrase ends */
+}
+.env-warn{
+  width:88%;margin:0;padding:8px 12px;text-align:center;
+  background:color-mix(in srgb, #FFF4C9 94%, transparent);color:var(--dark);
+  border:3px solid var(--edge);border-radius:12px;
+  font-size:calc(.8rem + 2px);line-height:1.6;
 }
 .start-btn{
   width:63%;margin-top:calc(2vh + 41px);            /* roomy gap under the white panel (about double) */
@@ -280,7 +279,15 @@ body.bar{--pgh:calc(var(--pgw) * 48 / 424 + 20px)}
 
 /* done */
 .done-title{font-size:calc(1.53rem + 2px);color:var(--pick);margin:0;text-shadow:3px 3px 0 var(--edge)}
-.final{width:min(78vw, 320px);border:4px solid var(--edge);box-shadow:0 0 0 3px var(--pick)}
+.final{height:clamp(220px, calc(100svh - 395px), 640px);width:auto;max-width:78vw;border:4px solid var(--edge);box-shadow:0 0 0 3px var(--pick);-webkit-touch-callout:default}
+.save-btn{
+  width:min(70%, 260px);aspect-ratio:1390/348;
+  background:url(assets/ui/btn_yellow.png) center / 100% 100% no-repeat;
+  border:0;cursor:pointer;color:var(--dark);
+  font-family:var(--hand);font-size:calc(1.15rem + 2px);letter-spacing:.08em;
+}
+.save-btn:focus-visible{outline:3px solid var(--pick);outline-offset:3px}
+.plain-btn.again{background:var(--paper);font-size:calc(.8rem + 2px)}
 
 @media (prefers-reduced-motion:no-preference){
   .screen{animation:in .25s ease both}
@@ -300,7 +307,6 @@ body.bar{--pgh:calc(var(--pgw) * 48 / 424 + 20px)}
   </div>
 
   <section class="screen" id="s-start">
-    <p class="trial-tag" id="trial-tag">お試し版</p>
     <div class="start-head">
       <img class="start-anniv" src="assets/ui/anniv.png" alt="22nd ANNIVERSARY">
       <img class="start-logo" src="assets/ui/logo.png" alt="プリンシパルホーム">
@@ -309,6 +315,7 @@ body.bar{--pgh:calc(var(--pgw) * 48 / 424 + 20px)}
     </div>
     <p class="panel start-lead">クイズに正解して、<wbr>家のパーツをゲット!<br>1問正解するたびに、<wbr>つぎのQRコードの<wbr>場所のヒントが出るよ。<br>5問クリアで、<wbr>あなただけの<wbr>理想の家が完成。</p>
     <button class="start-btn" id="btn-start">LET'S GO!</button>
+    <p class="env-warn" id="env-warn" hidden></p>
   </section>
 
   <section class="screen" id="s-quiz" hidden>
@@ -377,8 +384,9 @@ body.bar{--pgh:calc(var(--pgw) * 48 / 424 + 20px)}
     <div class="plate">
       <p class="done-title">おうち完成!</p>
       <img class="final" id="final" alt="完成したおうちの画像">
-      <p class="note">画像を長押しして保存してみてください。<br>本番では保存ボタンをつけます。</p>
-      <button class="plain-btn" id="btn-again">最初から遊ぶ</button>
+      <button class="save-btn" id="btn-save">画像を保存</button>
+      <p class="note" id="save-note">うまく保存されないときは、画像を長押しして<br>「写真に保存」をえらんでね。</p>
+      <button class="plain-btn again" id="btn-again">最初から遊ぶ</button>
     </div>
   </section>
 
@@ -644,7 +652,8 @@ body.bar{--pgh:calc(var(--pgw) * 48 / 424 + 20px)}
 
   // what each QR code opens (the part after # in its link). The start code also leads to QUIZ 1.
   var QR = { "go-7kx2":0, "q2-m4p9":1, "q3-t8w3":2, "q4-c5n7":3, "q5-h2v6":4 };
-  var MISS = { "x1-r9d3":1 };     // ハズレ codes: they never change the saved progress
+  // ハズレ codes (six are printed): they all show the same screen and never change the saved progress
+  var MISS = { "x1-r9d3":1, "x2-k4m8":1, "x3-w7q2":1, "x4-b6t5":1, "x5-n3z9":1, "x6-d8c4":1 };
 
   function opt(key){
     var s = STEPS.filter(function(x){ return x.key === key; })[0];
@@ -976,12 +985,37 @@ body.bar{--pgh:calc(var(--pgw) * 48 / 424 + 20px)}
     layoutRing();
   }
 
+  var finalBlob = null;
   function finish(){
     render(5, true).then(function(){
-      document.getElementById("final").src = cv.toDataURL("image/jpeg", 0.9);
+      document.getElementById("final").src = cv.toDataURL("image/jpeg", 0.92);
+      finalBlob = null;
+      if (cv.toBlob) cv.toBlob(function(b){ finalBlob = b; }, "image/jpeg", 0.92);
+      document.getElementById("save-note").innerHTML = "うまく保存されないときは、画像を長押しして<br>「写真に保存」をえらんでね。";
       show("done");
     });
   }
+
+  // 画像を保存: on phones the share sheet offers "画像を保存" (to Photos); on a computer it downloads the file
+  var FILE_NAME = "house-quiz-rally-22nd.jpg";
+  function saveImage(){
+    var note = document.getElementById("save-note");
+    function viaImage(){      // fall back to what the picture itself is: a long-press / download
+      var a = document.createElement("a");
+      a.href = document.getElementById("final").src; a.download = FILE_NAME;
+      document.body.appendChild(a); a.click(); a.remove();
+      note.innerHTML = "ダウンロードしたよ。見つからないときは、<br>画像を長押しして「写真に保存」をえらんでね。";
+    }
+    if (!finalBlob){ viaImage(); return; }
+    var file;
+    try { file = new File([finalBlob], FILE_NAME, { type:"image/jpeg" }); } catch (e){ viaImage(); return; }
+    if (navigator.canShare && navigator.canShare({ files:[file] })){
+      navigator.share({ files:[file], title:"HOUSE QUIZ RALLY" })
+        .then(function(){ note.innerHTML = "「画像を保存」をえらぶと、写真に入るよ。"; })
+        .catch(function(e){ if (!e || e.name !== "AbortError") viaImage(); });
+    } else viaImage();
+  }
+  document.getElementById("btn-save").addEventListener("click", saveImage);
 
   // ---------- buttons
   document.getElementById("btn-start").addEventListener("click", function(){
@@ -999,6 +1033,17 @@ body.bar{--pgh:calc(var(--pgw) * 48 / 424 + 20px)}
     document.getElementById("hint").textContent = HINTS[state.q];
     show("hint");
   });
+  // warn early when this browser cannot remember the house between QR codes
+  (function checkEnvironment(){
+    var msg = [];
+    try { localStorage.setItem("hqr-test", "1"); localStorage.removeItem("hqr-test"); }
+    catch (e){ msg.push("このブラウザでは、つづきを覚えられません。プライベートモードをオフにして、もう一度ひらいてね。"); }
+    if (/Line\/|FBAN|FBAV|Instagram|MicroMessenger/i.test(navigator.userAgent))
+      msg.push("アプリの中でひらいています。つづきから遊ぶには、スマホの<b>カメラ</b>でQRコードを読みとってね。");
+    var el = document.getElementById("env-warn");
+    if (msg.length){ el.innerHTML = msg.join("<br>"); el.hidden = false; }
+  })();
+
   // a new play draws new questions (avoiding last time's)
   function startOver(){
     reset();
