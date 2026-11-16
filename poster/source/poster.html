@@ -3,7 +3,6 @@
 <style>
 @font-face{font-family:Yusei;src:url(fonts/yusei.ttf)}
 @font-face{font-family:Dot;src:url(fonts/dotgothic.ttf)}
-@font-face{font-family:Press;src:url(fonts/press.ttf)}
 @page{size:297mm 420mm;margin:0}
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--navy:#0E1430;--yellow:#FFC83D;--ink:#2A2118;--orange:#FF9A1F}
@@ -39,7 +38,7 @@ img{display:block}
 .qr img.code{position:absolute;left:8.6mm;top:8.6mm;width:82.8mm;height:82.8mm;image-rendering:pixelated}
 body.blank .qr img.code{display:none}
 .go{position:absolute;left:100.5mm;top:270mm;width:96mm;height:22mm;background:url(../../test/assets/ui/btn_yellow.png) center/100% 100% no-repeat;
-  display:flex;align-items:center;justify-content:center;font-family:Press;font-size:7mm;letter-spacing:.08em;color:var(--ink)}
+  }
 .how{position:absolute;left:12mm;top:172mm;width:82mm;font-size:7.4mm;line-height:1.45;text-align:left}
 .how small{display:block;font-size:4.4mm;line-height:1.5;margin-top:2mm;color:#fff;text-shadow:.4mm .4mm 0 var(--navy),-.4mm .4mm 0 var(--navy),.4mm -.4mm 0 var(--navy),-.4mm -.4mm 0 var(--navy)}
 .arrow{position:absolute;left:34mm;top:204mm;width:62mm;height:50mm;overflow:visible}
@@ -95,7 +94,8 @@ body.blank .qr img.code{display:none}
   <path d="M6 6 C6 36, 22 46, 54 40"/><path d="M44 31 L55 40 L43 47"/></svg>
 
 <div class="qr"><img class="code" src="qr_start.png" alt=""></div>
-<div class="go">LET'S GO!</div>
+<div class="go"><!-- LET'S GO! drawn as outlines (Press Start 2P), so no font is needed -->
+<svg viewBox="0 0 96 22" width="96mm" height="22mm" style="position:absolute;left:0;top:0"><path fill="#2A2118" d="M14.855 13.625V7.5H16.605V12.75H20.105V13.625Z M21.54 13.625V7.5H27.665V8.375H23.29V10.125H26.79V11H23.29V12.75H27.665V13.625Z M31.725 13.625V8.375H29.975V7.5H35.225V8.375H33.475V13.625Z M38.41 10.125V7.5H40.16V10.125Z M45.095 13.625V12.75H44.22V11.875H45.97V12.75H48.595V11H45.095V10.125H44.22V8.375H45.095V7.5H49.47V8.375H50.345V9.25H48.595V8.375H45.97V10.125H49.47V11H50.345V12.75H49.47V13.625Z  M61.09 13.625V12.75H60.215V11.875H59.34V9.25H60.215V8.375H61.09V7.5H65.465V8.375H61.965V9.25H61.09V11.875H61.965V12.75H63.715V11H62.84V10.125H65.465V13.625Z M67.775 13.625V12.75H66.9V8.375H67.775V7.5H72.15V8.375H73.025V12.75H72.15V13.625ZM68.65 12.75H71.275V8.375H68.65Z M76.21 11.875V7.5H78.835V10.125H77.96V11.875ZM76.21 13.625V12.75H77.96V13.625Z"/></svg></div>
 
 <div class="badge b1"><b>何回でも<br>遊べる！</b><span>2回目からは、ちがう問題が出るよ</span></div>
 <div class="badge b2"><b>完成した家の画像を<br>プレゼント！</b><span>スマホに保存して、持ち帰ろう</span></div>
