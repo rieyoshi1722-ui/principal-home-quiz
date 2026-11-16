@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><title>HOUSE QUIZ RALLY A3ポスター</title>
+<style>
+@font-face{font-family:Yusei;src:url(fonts/yusei.ttf)}
+@font-face{font-family:Dot;src:url(fonts/dotgothic.ttf)}
+@font-face{font-family:Press;src:url(fonts/press.ttf)}
+@page{size:297mm 420mm;margin:0}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#0E1430;--yellow:#FFC83D;--ink:#2A2118;--orange:#FF9A1F}
+html,body{width:297mm;height:420mm}
+body{font-family:Yusei,"Hiragino Maru Gothic ProN",sans-serif;color:var(--ink);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.page{position:relative;width:297mm;height:420mm;overflow:hidden;background:#0999EF}   /* clips the clouds that run off the edge */
+/* forest backdrop, standing on the bottom edge like the game */
+.bg{position:absolute;left:0;bottom:0;width:297mm;height:532mm;background:url(../../test/assets/ui/bg_forest.jpg) center bottom/100% 100% no-repeat;image-rendering:pixelated}
+.cloud{position:absolute;image-rendering:pixelated}
+.abs{position:absolute}
+img{display:block}
+
+/* outlined text, like the game's headings */
+.outline{color:#fff;text-shadow:
+  .5mm 0 0 var(--navy),-.5mm 0 0 var(--navy),0 .5mm 0 var(--navy),0 -.5mm 0 var(--navy),
+  .5mm .5mm 0 var(--navy),-.5mm .5mm 0 var(--navy),.5mm -.5mm 0 var(--navy),-.5mm -.5mm 0 var(--navy),
+  .9mm 1mm 0 var(--navy)}
+
+.head{position:absolute;left:0;right:0;top:9mm;display:flex;flex-direction:column;align-items:center}
+.anniv{width:90mm}
+.logo{width:120mm;margin-top:2.5mm;filter:drop-shadow(0 .5mm .8mm rgba(14,20,48,.8))}
+.title{width:138mm;margin-top:2.5mm}
+.sub{font-size:10.5mm;margin-top:2.5mm;letter-spacing:.06em}
+
+.panel{background:rgba(255,255,255,.92);border:1.1mm solid var(--navy);border-radius:5mm;box-shadow:1.2mm 1.4mm 0 var(--navy)}
+.catch{position:absolute;left:21mm;right:21mm;top:116mm;padding:5mm 9mm 5.5mm;text-align:center}
+.catch .big{font-size:10.4mm;line-height:1.3;-webkit-text-stroke:.28mm var(--ink);letter-spacing:.02em}
+.catch .big b{color:#E5530F;font-weight:400;-webkit-text-stroke:.28mm #E5530F}
+.catch .small{font-size:5mm;line-height:1.6;margin-top:2mm}
+
+/* QR: a white square, left empty on purpose */
+.qr{position:absolute;left:98.5mm;top:163mm;width:100mm;height:100mm;background:#fff;border:1.4mm solid var(--navy);border-radius:7mm;box-shadow:1.6mm 1.8mm 0 var(--navy)}
+.qr img.code{position:absolute;left:8.6mm;top:8.6mm;width:82.8mm;height:82.8mm;image-rendering:pixelated}
+body.blank .qr img.code{display:none}
+.go{position:absolute;left:100.5mm;top:270mm;width:96mm;height:22mm;background:url(../../test/assets/ui/btn_yellow.png) center/100% 100% no-repeat;
+  display:flex;align-items:center;justify-content:center;font-family:Press;font-size:7mm;letter-spacing:.08em;color:var(--ink)}
+.how{position:absolute;left:12mm;top:172mm;width:82mm;font-size:7.4mm;line-height:1.45;text-align:left}
+.how small{display:block;font-size:4.4mm;line-height:1.5;margin-top:2mm;color:#fff;text-shadow:.4mm .4mm 0 var(--navy),-.4mm .4mm 0 var(--navy),.4mm -.4mm 0 var(--navy),-.4mm -.4mm 0 var(--navy)}
+.arrow{position:absolute;left:34mm;top:204mm;width:62mm;height:50mm;overflow:visible}
+
+.badge{position:absolute;width:78mm;padding:4.6mm 5mm 4.8mm;text-align:center;background:var(--yellow);border:1.2mm solid var(--navy);border-radius:5mm;box-shadow:1.4mm 1.6mm 0 var(--navy)}
+.badge b{display:block;font-weight:400;font-size:7.6mm;line-height:1.28;-webkit-text-stroke:.22mm var(--ink)}
+.badge span{display:block;font-size:4.2mm;line-height:1.45;margin-top:1.6mm}
+.b1{right:11mm;top:170mm;transform:rotate(3deg)}
+.b2{right:8mm;top:214mm;transform:rotate(-2.5deg)}
+
+.sprite{position:absolute;image-rendering:auto}
+
+/* how to play */
+.steps{position:absolute;left:11mm;right:11mm;top:300mm;height:106mm;padding:10mm 5mm 4mm;background:rgba(255,255,255,.93)}
+.tab{position:absolute;left:8mm;top:-7mm;background:var(--navy);color:var(--yellow);font-family:Dot;font-size:6.2mm;padding:1.6mm 6mm;border-radius:3mm;letter-spacing:.1em}
+.row{display:flex;align-items:flex-start;justify-content:space-between;height:100%}
+.step{width:57mm;display:flex;flex-direction:column;align-items:center}
+.num{position:absolute;margin:-8.4mm 0 0 -26mm;width:9.5mm;height:9.5mm;border-radius:50%;background:var(--yellow);border:.9mm solid var(--navy);font-family:Press;font-size:5mm;display:flex;align-items:center;justify-content:center;padding-left:.4mm}
+.phone{width:28mm;height:60.6mm;border:.9mm solid var(--navy);border-radius:3.4mm;overflow:hidden;background:var(--navy);box-shadow:.8mm .9mm 0 rgba(14,20,48,.35)}
+.phone img{width:100%;height:100%;object-fit:cover}
+.cap{font-size:4.2mm;line-height:1.45;text-align:center;margin-top:2.4mm}
+.cap b{font-weight:400;display:block;font-size:4.9mm;color:#E5530F;-webkit-text-stroke:.14mm #E5530F;margin-bottom:.4mm}
+.next{width:10mm;height:60mm;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1.6mm}
+.next i{display:block;width:1.8mm;height:1.8mm;border-radius:50%;background:#FDD000;border:.4mm solid var(--navy)}
+.next u{display:block;width:0;height:0;border-style:solid;border-width:3.2mm 0 3.2mm 5.4mm;border-color:transparent transparent transparent var(--navy);margin-top:.4mm}
+
+.notes{position:absolute;left:11mm;right:11mm;top:408.6mm;font-size:3mm;line-height:1.35;color:#fff;text-align:center;opacity:.95}
+</style></head>
+<body class="WITHQR"><div class="page">
+<div class="bg"></div>
+<img class="cloud" src="cloud_l.png" style="left:-4mm;top:100mm;width:62mm">
+<img class="cloud" src="cloud_r.png" style="right:-4mm;top:30mm;width:82mm">
+<img class="cloud" src="cloud_l.png" style="right:-6mm;top:136mm;width:44mm;transform:scaleX(-1)">
+
+<div class="head">
+  <img class="anniv" src="../../test/assets/ui/anniv.png" alt="22nd ANNIVERSARY">
+  <img class="logo" src="../../test/assets/ui/logo.png" alt="PRINCIPAL HOME">
+  <img class="title" src="../../test/assets/ui/title_house.png" alt="HOUSE QUIZ RALLY" style="image-rendering:pixelated">
+  <div class="sub outline">おうちづくりクイズラリー</div>
+</div>
+
+<img class="sprite" src="../../test/assets/parts/pet_bird.webp" style="left:27mm;top:42mm;width:34mm;transform:rotate(-6deg)">
+<img class="sprite" src="../../test/assets/parts/pet_momonga.webp" style="right:22mm;top:78mm;width:40mm;transform:rotate(5deg)">
+
+<div class="panel catch">
+  <div class="big">クイズに答えて、<b>あなただけの家</b>をつくろう！</div>
+  <div class="small">会場にかくれた5つのクイズに正解して、家のパーツを集めよう。<br>最後に、世界にひとつだけの家が完成するよ！</div>
+</div>
+
+<div class="how outline">スマホのカメラで<br>QRコードを<br>よみこんでね</div>
+<svg class="arrow" viewBox="0 0 62 50" fill="none" stroke="#0E1430" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M6 6 C6 36, 22 46, 54 40" stroke="#fff" stroke-width="4.6"/><path d="M44 31 L55 40 L43 47" stroke="#fff" stroke-width="4.6"/>
+  <path d="M6 6 C6 36, 22 46, 54 40"/><path d="M44 31 L55 40 L43 47"/></svg>
+
+<div class="qr"><img class="code" src="qr_start.png" alt=""></div>
+<div class="go">LET'S GO!</div>
+
+<div class="badge b1"><b>何回でも<br>遊べる！</b><span>2回目からは、ちがう問題が出るよ</span></div>
+<div class="badge b2"><b>完成した家の画像を<br>プレゼント！</b><span>スマホに保存して、持ち帰ろう</span></div>
+
+<img class="sprite" src="../../test/assets/parts/pet_dino.webp" style="left:3mm;top:243mm;width:46mm">
+<img class="sprite" src="../../test/assets/parts/pet_dog.webp" style="right:7mm;top:268mm;width:30mm">
+
+<div class="panel steps">
+  <div class="tab">あそびかた</div>
+  <div class="row">
+    <div class="step"><div class="phone"><img src="shots/s1_start.png"></div><div class="cap"><b>QRコードを読みこんで<br>スタート！</b>スタートのQRコードを<br>スマホのカメラで読んでね</div></div>
+    <div class="next"><i></i><i></i><u></u></div>
+    <div class="step"><div class="phone"><img src="shots/s2_quiz.png"></div><div class="cap"><b>クイズに答えよう！</b>正解すると、家のパーツを<br>えらべるよ。次のQRコードの<br>場所のヒントも出るよ</div></div>
+    <div class="next"><i></i><i></i><u></u></div>
+    <div class="step"><div class="phone"><img src="shots/s3_hint.png"></div><div class="cap"><b>ヒントをたよりに<br>QRコードを探そう！</b>5問ぜんぶ答えてね。<br>ハズレもまじっているよ</div></div>
+    <div class="next"><i></i><i></i><u></u></div>
+    <div class="step"><div class="phone"><img src="shots/s4_done.png"></div><div class="cap"><b>家が完成！</b>完成した家の画像を<br>プレゼント。写真に保存して<br>持ち帰ろう</div></div>
+  </div>
+</div>
+<div class="notes">※スマホの<b>カメラ</b>で読みとってください。LINEなどのアプリの中で読んだり、プライベートモードで開いたりすると、続きから遊べません。<br>※音が出ます。音量にご注意ください。　※通信量（約7MB）がかかります。</div>
+</div></body></html>
