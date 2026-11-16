@@ -10,3 +10,4 @@
 - 元は `source/poster.html`（文字・位置・色はここ）。ゲームの画像は `test/assets/` を使っています。
 - `cd source && node render.js ..` で、2つのPDFとプレビューを作り直せます（Playwright と Chromium が必要。`CHROMIUM_PATH` で Chromium の場所を指定）。
 - 書体は Yusei Magic・DotGothic16・Press Start 2P（どれも SIL Open Font License）。`source/fonts/` に入っています。
+- 「LET'S GO!」の文字は、Illustrator で書体がなくても開けるように、**図形（アウトライン）**にしてあります（Press Start 2P は PDF に入っていません）。ほかの文字は、Yusei Magic と DotGothic16 のままです。
